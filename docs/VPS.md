@@ -114,3 +114,11 @@ After restoration: verify login, two production URLs, previews, rollback, secret
 ## Troubleshooting
 
 `queued` indefinitely: inspect worker/Redis logs and ensure all services use the same database. `verifying` then failed: check runtime health, DNS, public HTTPS, routing and the deployment identity response header. Dependency installation fails: the default network is disabled. Permission errors: confirm `DATA_PATH` owner uid1000 and `DOCKER_GID`. Domain verification409: wait for DNS propagation and confirm the exact TXT record. A failed deployment leaves the production pointer unchanged.
+
+On restricted managed Node.js hosting, Turbopack can fail while starting a CSS worker with `node process exited before we could connect`. The dashboard build script explicitly sets `NODE_ENV=production` and uses webpack. From the repository root, run `npm run build -w @deployhub/dashboard`; the output is `apps/dashboard/.next`. A hosting preset that invokes `next build` directly bypasses this launcher.
+
+If a build reports `spawn ... node EAGAIN`, the host could not create a required child process. Check the account's process and memory limits with the hosting provider. Switching bundlers or reducing worker counts does not guarantee sufficient resources, and disabling TypeScript validation does not resolve the hosting requirement.
+
+Compiling the dashboard does not deploy the API, queue worker, website gateway or databases. Hostinger managed accounts without Docker and administrator access cannot run the complete DeployHub stack as configured here. Use the dedicated VPS installation above for source builds and server applications; do not report the service as working from a successful dashboard build alone.
+
+Production configuration must use `NODE_ENV=production`, a reachable API origin and actual public dashboard/hosting domains. Local development values such as `localhost` do not configure public serving. A domain must resolve in public DNS before its website or HTTPS certificate can work; adding its name in hPanel alone does not establish DNS routing.
