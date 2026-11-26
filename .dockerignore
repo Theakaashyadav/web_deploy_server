@@ -1,0 +1,12 @@
+node_modules
+.npm-cache
+.git
+.env
+.env.*
+data
+.data
+backups
+**/.next
+**/dist
+test-results
+playwright-report

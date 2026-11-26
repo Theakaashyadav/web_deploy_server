@@ -1,0 +1,3 @@
+# Install only after choosing retention and encrypted off-server storage.
+# Replace the path with the actual installation directory.
+0 3 * * * cd /opt/deployhub && bash infrastructure/scripts/backup.sh >> /var/log/deployhub-backup.log 2>&1

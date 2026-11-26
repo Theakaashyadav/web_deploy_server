@@ -1,0 +1,204 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url = env("DATABASE_URL")
+}
+
+model User {
+  id String @id @default(cuid())
+  email String @unique
+  name String
+  passwordHash String
+  role String @default("super_admin")
+  createdAt DateTime @default(now())
+  sessions Session[]
+  keys ApiKey[]
+  memberships ProjectMember[]
+}
+
+model Session {
+  id String @id @default(cuid())
+  tokenHash String @unique
+  userId String
+  user User @relation(fields:[userId], references:[id], onDelete:Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  @@index([userId])
+}
+
+model Project {
+  id String @id @default(cuid())
+  name String
+  slug String @unique
+  description String @default("")
+  status String @default("active")
+  framework String @default("auto")
+  buildCommand String @default("")
+  installCommand String @default("")
+  rootDirectory String @default(".")
+  outputDirectory String @default("")
+  spaFallback Boolean @default(false)
+  currentDeploymentId String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deployments Deployment[]
+  members ProjectMember[]
+  domains Domain[]
+  variables EnvironmentVariable[]
+  keys ApiKey[]
+  integrations GitIntegration[]
+}
+
+model ProjectMember {
+  id String @id @default(cuid())
+  userId String
+  projectId String
+  role String @default("developer")
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  project Project @relation(fields:[projectId],references:[id],onDelete:Cascade)
+  @@unique([userId,projectId])
+}
+
+model Deployment {
+  id String @id
+  projectId String
+  project Project @relation(fields:[projectId],references:[id],onDelete:Cascade)
+  status String @default("queued")
+  environment String @default("preview")
+  source String @default("upload")
+  framework String @default("auto")
+  version Int
+  configuration String @default("{}")
+  uploadPath String
+  error String?
+  durationMs Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  logs DeploymentLog[]
+  artifact DeploymentArtifact?
+  @@unique([projectId,version])
+  @@index([projectId,createdAt])
+  @@index([status,createdAt])
+}
+
+model DeploymentArtifact {
+  id String @id @default(cuid())
+  deploymentId String @unique
+  deployment Deployment @relation(fields:[deploymentId],references:[id],onDelete:Cascade)
+  path String
+  sizeBytes BigInt
+  sha256 String
+  kind String @default("static")
+  runtimeImage String?
+  runtimeContainer String?
+  runtimeEndpoint String?
+  createdAt DateTime @default(now())
+}
+
+model DeploymentLog {
+  id Int @id @default(autoincrement())
+  deploymentId String
+  deployment Deployment @relation(fields:[deploymentId],references:[id],onDelete:Cascade)
+  message String
+  level String @default("info")
+  timestamp DateTime @default(now())
+  @@index([deploymentId,id])
+}
+
+model Domain {
+  id String @id @default(cuid())
+  projectId String
+  project Project @relation(fields:[projectId],references:[id],onDelete:Cascade)
+  hostname String @unique
+  verificationToken String
+  verifiedAt DateTime?
+  sslStatus String @default("pending")
+  createdAt DateTime @default(now())
+  ssl SSLMetadata?
+}
+
+model SSLMetadata {
+  id String @id @default(cuid())
+  domainId String @unique
+  domain Domain @relation(fields:[domainId],references:[id],onDelete:Cascade)
+  expiresAt DateTime?
+  issuer String?
+}
+
+model EnvironmentVariable {
+  id String @id @default(cuid())
+  projectId String
+  project Project @relation(fields:[projectId],references:[id],onDelete:Cascade)
+  name String
+  ciphertext String
+  environment String @default("production")
+  @@unique([projectId,name,environment])
+}
+
+model ApiKey {
+  id String @id @default(cuid())
+  name String
+  tokenHash String @unique
+  prefix String
+  scopes String
+  userId String
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  projectId String?
+  project Project? @relation(fields:[projectId],references:[id],onDelete:Cascade)
+  expiresAt DateTime?
+  lastUsedAt DateTime?
+  createdAt DateTime @default(now())
+  @@index([userId])
+}
+
+model GitIntegration {
+  id String @id @default(cuid())
+  projectId String
+  project Project @relation(fields:[projectId],references:[id],onDelete:Cascade)
+  repository String
+  branch String @default("main")
+  autoProduction Boolean @default(false)
+  webhooks Webhook[]
+}
+
+model Webhook {
+  id String @id @default(cuid())
+  integrationId String
+  integration GitIntegration @relation(fields:[integrationId],references:[id],onDelete:Cascade)
+  secretCiphertext String
+  createdAt DateTime @default(now())
+}
+
+model ActivityLog {
+  id String @id @default(cuid())
+  userId String?
+  projectId String?
+  action String
+  details String @default("")
+  createdAt DateTime @default(now())
+  @@index([projectId,createdAt])
+}
+
+model Backup {
+  id String @id @default(cuid())
+  status String @default("pending")
+  path String
+  checksum String?
+  createdAt DateTime @default(now())
+}
+
+model ApplicationSetting {
+  key String @id
+  value String
+  updatedAt DateTime @updatedAt
+}
+
+model ServerMetric {
+  id Int @id @default(autoincrement())
+  values String
+  createdAt DateTime @default(now())
+  @@index([createdAt])
+}

@@ -1,0 +1,137 @@
+name: deployhub
+x-service: &service
+  build:
+    context: .
+    dockerfile: infrastructure/docker/Dockerfile
+    target: base
+  restart: unless-stopped
+  init: true
+  env_file: .env
+  environment: &environment
+    NODE_ENV: production
+    DATABASE_URL: postgresql://${POSTGRES_USER:-deployhub}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-deployhub}?schema=public
+    REDIS_URL: redis://redis:6379
+    DATA_DIR: /data
+    API_PORT: 4000
+    RUNTIME_PORT: 4001
+    RUNTIME_INTERNAL_HOST: runtime
+    BUILD_HOST_DATA_DIR: ${DATA_PATH:?Set an absolute DATA_PATH}
+  volumes:
+    - ${DATA_PATH}:/data
+  networks: [control]
+  security_opt: [no-new-privileges:true]
+  cap_drop: [ALL]
+  depends_on:
+    postgres: {condition: service_healthy}
+    redis: {condition: service_healthy}
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-deployhub}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-deployhub}
+    volumes: [postgres:/var/lib/postgresql/data]
+    networks: [control]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 5s
+      retries: 15
+  redis:
+    image: redis:7-alpine
+    command: [redis-server, --appendonly, 'yes', --maxmemory, 256mb, --maxmemory-policy, noeviction]
+    restart: unless-stopped
+    volumes: [redis:/data]
+    networks: [control]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      retries: 15
+  migrate:
+    <<: *service
+    restart: 'no'
+    command: [npm, run, migrate:production, -w, '@deployhub/database']
+  api:
+    <<: *service
+    command: [node, --import, tsx, apps/api/src/index.ts]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, node, -e, 'fetch("http://127.0.0.1:4000/healthz").then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))']
+      interval: 15s
+      retries: 5
+  worker:
+    <<: *service
+    environment:
+      <<: *environment
+      RUNTIME_DOCKER_GATEWAY: network
+      RUNTIME_DOCKER_NETWORK: deployhub-runtime
+    networks: [control, runtime_apps]
+    command: [node, --import, tsx, apps/worker/src/index.ts]
+    group_add: ['${DOCKER_GID:-0}']
+    volumes:
+      - ${DATA_PATH}:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+    mem_limit: 1g
+    cpus: 1
+    pids_limit: 256
+  runtime:
+    <<: *service
+    networks: [control, runtime_apps]
+    command: [node, --import, tsx, apps/worker/src/runtime.ts]
+    volumes:
+      - ${DATA_PATH}:/data:ro
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+    mem_limit: 512m
+    cpus: 1
+    pids_limit: 128
+  dashboard:
+    <<: *service
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile
+      target: dashboard
+      args:
+        API_ORIGIN: http://api:4000
+        MAX_UPLOAD_BYTES: ${MAX_UPLOAD_BYTES:-104857600}
+        MAX_FILES: ${MAX_FILES:-10000}
+    command: [npm, run, start, -w, '@deployhub/dashboard']
+    environment:
+      NODE_ENV: production
+      API_ORIGIN: http://api:4000
+      MAX_UPLOAD_BYTES: ${MAX_UPLOAD_BYTES:-104857600}
+      MAX_FILES: ${MAX_FILES:-10000}
+    volumes: []
+    depends_on:
+      api: {condition: service_healthy}
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports: ['80:80', '443:443', '443:443/udp']
+    environment:
+      ADMIN_DOMAIN: ${ADMIN_DOMAIN:?Set ADMIN_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL:?Set ACME_EMAIL}
+    volumes:
+      - ./infrastructure/proxy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks: [control]
+    depends_on: [dashboard, runtime]
+volumes:
+  postgres:
+  redis:
+  caddy_data:
+  caddy_config:
+networks:
+  control:
+    driver: bridge
+  runtime_apps:
+    name: deployhub-runtime
+    driver: bridge
+    internal: ${RUNTIME_NETWORK_INTERNAL:-true}
