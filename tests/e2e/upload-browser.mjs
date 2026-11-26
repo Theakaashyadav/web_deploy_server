@@ -16,7 +16,7 @@ export async function verifyFolderUpload({dashboardUrl,folder,projectId,producti
   const page=await context.newPage();
   const pageErrors=[];page.on('pageerror',error=>pageErrors.push(error.message));
   try {
-    await page.goto(origin);
+    await page.goto(origin+'/admin');
     await page.getByRole('heading',{name:'Sign in to your workspace'}).waitFor();
     await page.getByLabel('Email address',{exact:true}).fill(email);
     await page.locator('input[name=password]').fill(password);

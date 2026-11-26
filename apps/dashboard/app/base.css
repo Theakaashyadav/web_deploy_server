@@ -1,0 +1,7 @@
+*,:before,:after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f7f7f2;color:#172237;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit}
+a,button{-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:3px solid #ff5a2d;outline-offset:5px}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,::before,::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}

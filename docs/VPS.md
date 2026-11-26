@@ -38,7 +38,7 @@ sudo bash infrastructure/scripts/install.sh --approve-server-changes --enable-pr
 
 This additional flag allows network access for dependency downloads and application services when generating a new production configuration. It does not rewrite an existing `.env` or migrate an existing Docker network. Public hostile multi-tenant use still requires a separately hardened egress/isolation design. The runtime readiness check remains unavailable when Docker or its required configuration is missing.
 
-Open the configured administrator HTTPS domain. Read `SETUP_TOKEN` from `.env` locally and use it to create the first administrator. Do not share or paste `.env` into logs. Keep `ENCRYPTION_KEY` across upgrades and disaster recovery; changing it makes saved variables unreadable.
+Open `/admin` on the configured administrator HTTPS domain. Read `SETUP_TOKEN` from `.env` locally and use it to create the first administrator. Do not share or paste `.env` into logs. Keep `ENCRYPTION_KEY` across upgrades and disaster recovery; changing it makes saved variables unreadable.
 
 Manual equivalent after creating `.env` and giving data ownership to uid1000:
 

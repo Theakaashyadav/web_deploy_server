@@ -2,6 +2,8 @@
 
 A self-hosted website deployment platform with a Next.js dashboard, Express API, Prisma database, persistent worker, independent website runtime, CLI, and local MCP bridge.
 
+The public homepage introduces **Websynk Technologies** and its website, app, marketing, SEO, branding and ecommerce services. WhatsApp enquiries open the owner's business chat. The top-right admin icon opens the DeployHub workspace at `/admin`; `/login` redirects there.
+
 **Static deployment is locally tested. Isolated Node.js/server application adapters are implemented, but their Docker builds have not been verified on this Windows host. This is not an audited public multi-tenant hosting product.** See [feature status and limitations](docs/STATUS.md) before production use.
 
 ## Separate projects
@@ -11,7 +13,8 @@ DeployHub lives in `C:\Users\Theakaashyadav\Desktop\hosting`. The Avynex website
 | Local service | Address |
 | --- | --- |
 | Avynex website | `http://localhost:3000` |
-| DeployHub dashboard | `http://localhost:3100` |
+| Websynk Technologies website | `http://localhost:3100` |
+| DeployHub dashboard | `http://localhost:3100/admin` |
 | DeployHub API | `http://localhost:4100` |
 | DeployHub hosted websites | `http://<project-slug>.localhost:4101` |
 
@@ -29,7 +32,7 @@ npm run build -w @deployhub/mcp-server
 npm run dev
 ```
 
-Open **http://localhost:3100** and create the first administrator. There are no default credentials. Use this exact dashboard origin; cookie writes validate the Origin header. API: `http://localhost:4100`; hosted websites: `http://<project-slug>.localhost:4101`. Preview hosts include the deployment ID. Some OS tools do not resolve `.localhost` automatically; browsers generally do. For HTTP testing, connect to `127.0.0.1:4101` and set the `Host` header.
+Open **http://localhost:3100/admin** and create the first administrator. There are no default credentials. Keep the dashboard origin as `http://localhost:3100` without a path; cookie writes validate the Origin header. API: `http://localhost:4100`; hosted websites: `http://<project-slug>.localhost:4101`. Preview hosts include the deployment ID. Some OS tools do not resolve `.localhost` automatically; browsers generally do. For HTTP testing, connect to `127.0.0.1:4101` and set the `Host` header.
 
 `npm run setup` creates `.env` only if absent, generates the SQLite Prisma client and applies the development schema. Production uses the separate PostgreSQL schema and committed migration. SQLite paths are relative to `packages/database/prisma`; all services must share the same `DATABASE_URL` and absolute `DATA_DIR`.
 

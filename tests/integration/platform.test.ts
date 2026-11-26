@@ -35,7 +35,7 @@ test('real deployment platform: authentication, isolation, versions, CLI, recove
   }
   async function startDashboard() {
     await fs.mkdir(dashboardDirectory,{recursive:true});
-    for(const name of ['app','lib','next.config.ts','postcss.config.mjs','package.json','tsconfig.json','next-env.d.ts']){
+    for(const name of ['app','components','lib','next.config.ts','postcss.config.mjs','package.json','tsconfig.json','next-env.d.ts']){
       const source=path.resolve('apps/dashboard',name);
       if(await fs.access(source).then(()=>true,()=>false))await fs.cp(source,path.join(dashboardDirectory,name),{recursive:true});
     }
@@ -206,6 +206,8 @@ test('real deployment platform: authentication, isolation, versions, CLI, recove
       assert.equal((await site(hostname,'/assets/image.bin')).status,200);
       assert.match(await (await site(projectA.slug)).text(),/version one/);
       if(process.env.DEPLOYHUB_BROWSER_TEST==='1') {
+        const {verifyAgencyLanding}=await import('../e2e/landing-browser.mjs');
+        await verifyAgencyLanding({dashboardUrl});
         const folder=path.join(directory,'Browser folder');
         const nested=path.join(folder,'first','second','website','public');
         await fs.mkdir(path.join(nested,'assets'),{recursive:true});

@@ -18,7 +18,8 @@ if (!existsSync('node_modules/.prisma/client/index.js')) {
 }
 try { await assertPortsAvailable(ports); }
 catch(error) { console.error(error.message); process.exit(1); }
-console.log(`DeployHub dashboard: http://localhost:${ports[0].port}`);
+console.log(`Websynk Technologies website: http://localhost:${ports[0].port}`);
+console.log(`DeployHub dashboard: http://localhost:${ports[0].port}/admin`);
 console.log(`DeployHub API: http://localhost:${ports[1].port}; websites: http://<slug>.localhost:${ports[2].port}`);
 const children = [];
 function launch(args, cwd = process.cwd()) {

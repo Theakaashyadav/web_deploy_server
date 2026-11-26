@@ -2,6 +2,8 @@
 
 DeployHub is a monorepo. Its Next.js dashboard builds inside `apps/dashboard`, so the generated output is `apps/dashboard/.next` when paths are measured from the repository root.
 
+The public `/` route is the Websynk Technologies agency homepage. Its WhatsApp link uses the owner's contact in `apps/dashboard/lib/agency.ts`. The admin icon opens `/admin`; `/login` redirects there. The public page renders without the deployment API. Keep `DASHBOARD_ORIGIN` set to the origin only, without `/admin`.
+
 Use these settings in hPanel's **Settings & Redeploy** screen:
 
 | Setting | Value |

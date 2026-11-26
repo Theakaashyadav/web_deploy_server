@@ -16,7 +16,7 @@ try {
     const db=new PrismaClient({datasourceUrl:'file:../../../data/browser/database.db'});
     await db.project.deleteMany();await db.user.deleteMany();await db.applicationSetting.deleteMany();await db.$disconnect();
   }
-  await page.goto(origin);await page.getByRole('heading',{name:'Create your workspace'}).waitFor();
+  await page.goto(origin+'/admin');await page.getByRole('heading',{name:'Create your workspace'}).waitFor();
   await page.getByLabel('Full name',{exact:true}).fill('Local QA Administrator');
   await page.getByLabel('Email address',{exact:true}).fill('qa@example.test');
   await page.locator('input[name=password]').fill(randomBytes(24).toString('base64url'));

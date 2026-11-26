@@ -2,6 +2,8 @@
 
 ## First login
 
+Open `/admin` on the configured dashboard domain, or use the admin icon on the public Websynk Technologies homepage. `/login` redirects to `/admin`. The agency homepage and WhatsApp contact links do not require a connection to the deployment API; administrator authentication still does.
+
 Local setup accepts a new administrator name, email and a password of at least 12 characters. Production additionally requires the private `SETUP_TOKEN` generated in `.env`. The first-admin flow closes after creation. No credentials are hardcoded. Keep the dashboard reachable only to trusted operators.
 
 For a lost password, an authorized server operator can run `docker compose exec api node --import tsx infrastructure/scripts/reset-password.ts YOUR_EMAIL --confirm-reset`. This replaces that account's password, revokes all its sessions and API keys, and displays a new random password once. Run it only in a private terminal and store the result securely. Email-based recovery is not implemented.
