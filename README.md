@@ -85,11 +85,18 @@ sudo bash infrastructure/scripts/install.sh --approve-server-changes --enable-pr
 
 This command explicitly authorizes installing Docker if missing, starting the new stack, and enabling dependency downloads and runtime network access for your own trusted source projects. The installer does not rewrite an existing `.env` or change firewall rules. Read [the VPS guide](docs/VPS.md) before running on an existing server. Production Docker, DNS and certificates require external infrastructure and were not validated on the Windows development host.
 
+## Hostinger dashboard hosting
+
+For a dashboard build from the repository root, set Hostinger's output directory to **`apps/dashboard/.next`**. The root `.next` directory is not generated. Save the updated settings before redeploying. See [the exact Hostinger settings](docs/HOSTINGER.md).
+
+Managed web hosting can publish the dashboard; the full API, worker, gateway, databases and Docker application runtimes need a separate Docker-capable VPS. A successful dashboard build alone does not enable website deployment.
+
 ## Documentation
 
 - [Architecture and deployment lifecycle](docs/ARCHITECTURE.md)
 - [Administrator manual](docs/ADMIN.md)
 - [VPS installation, DNS, updates, backup and disaster recovery](docs/VPS.md)
+- [Hostinger dashboard build settings and output-path troubleshooting](docs/HOSTINGER.md)
 - [Source builds, server runtimes and worker setup](docs/RUNTIMES.md)
 - [CLI, API and Codex MCP integration](docs/integrations.md)
 - [OpenAPI specification](docs/openapi.json)

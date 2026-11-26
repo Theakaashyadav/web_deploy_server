@@ -1,7 +1,9 @@
 import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
+import { relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+const repositoryDirectory = fileURLToPath(new URL('../', import.meta.url));
 const dashboardDirectory = fileURLToPath(new URL('../apps/dashboard/', import.meta.url));
 const require = createRequire(new URL('../apps/dashboard/package.json', import.meta.url));
 let nextCli;
@@ -32,5 +34,10 @@ child.once('error', error => {
 child.once('close', (code, signal) => {
   process.removeListener('SIGINT', onInterrupt);
   process.removeListener('SIGTERM', onTerminate);
+  if (!spawnFailed && code === 0) {
+    const outputDirectory = relative(repositoryDirectory, resolve(dashboardDirectory, process.env.DEPLOYHUB_NEXT_DIST_DIR || '.next')).split(sep).join('/');
+    console.log(`Dashboard build output from repository root: ${outputDirectory}`);
+    console.log('For Hostinger with root directory ".", save this path as the Output directory before redeploying.');
+  }
   process.exitCode = spawnFailed ? 1 : code !== null && code >= 0 ? code : signal === 'SIGINT' ? 130 : signal === 'SIGTERM' ? 143 : 1;
 });
