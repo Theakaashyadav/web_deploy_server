@@ -8,6 +8,8 @@ Use port3100 for the Websynk local preview. Port3000 belongs to the separate pro
 
 Preserve the existing Websynk branding and functional telephone, WhatsApp and Maps links. The owner confirmed the2021 founding year,2,000+ projects delivered and advertised website/marketing services during the SEO implementation. Do not invent reviews, awards, clients, social profiles, business hours or marketing results. Physical office: Noida; GreaterNoida is a service area.
 
-Run `npm run typecheck`, `npm test`, `npm run build` and `npm run test:integration` after relevant changes. Keep public content in server-rendered HTML with one clearH1 per page, consistent canonical metadata and only indexable public URLs in the sitemap. Enquiry completion must describe the real WhatsApp handoff rather than claiming backend delivery.
+This project serves only the landing page at `/`. Services, company information, enquiries and policy disclosures are homepage sections. Do not reintroduce service, blog, company or policy page routes unless the user requests them. Preserve the Call Now/WhatsApp dock and the owner-provided GTM-P7S6T33L installation.
+
+Run `npm run typecheck`, `npm test`, `npm run build` and `npm run test:integration` after relevant changes. Keep public content in server-rendered HTML with one clear H1, consistent canonical metadata and only the homepage in the sitemap. Enquiry completion must describe the real WhatsApp handoff rather than claiming backend delivery. Keep generated verification artifacts under ignored `tests/artifacts/`.
 
 Do not deploy to production or push changes that trigger production publishing without explicit authorization. Return only verified preview addresses. Never print or commit credentials. Do not remove historical persistent data or restore backups without explicit approval.

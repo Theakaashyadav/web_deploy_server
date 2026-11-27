@@ -20,7 +20,7 @@ export default function MobileNavigation({ whatsappUrl }: { whatsappUrl: string 
   return <details className={styles.mobileMenu} ref={menu}>
     <summary aria-label="Open navigation" aria-controls="agency-mobile-navigation"><Menu size={23} aria-hidden="true" /></summary>
     <nav id="agency-mobile-navigation" className={styles.mobileNav} aria-label="Mobile navigation" onClick={close}>
-      <a href="/#services">Services</a><a href="/about-us/">Our company</a><a href="/#process">Our approach</a><a href="/blog/">Insights</a><a href="/#contact">Contact</a>
+      <a href="/#services">Services</a><a href="/#about">Our company</a><a href="/#process">Our approach</a><a href="/#faq">FAQs</a><a href="/#contact">Contact</a>
       <a href={whatsappUrl || '/#contact'} target={whatsappUrl ? '_blank' : undefined} rel={whatsappUrl ? 'noopener noreferrer' : undefined}>Chat on WhatsApp <ArrowUpRight size={17} aria-hidden="true" /></a>
     </nav>
   </details>;

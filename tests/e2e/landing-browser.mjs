@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repository=fileURLToPath(new URL('../../',import.meta.url));
-export async function verifyAgencyLanding({dashboardUrl,publicPaths=['/website-development-greater-noida/','/blog/website-development-cost-greater-noida/']}){
+export async function verifyAgencyLanding({dashboardUrl}){
   const origin=new URL(dashboardUrl).origin;
   assert.ok(['localhost','127.0.0.1','[::1]'].includes(new URL(origin).hostname),'Browser QA uses a local preview only.');
   const directory=path.join(repository,'tests/artifacts');await fs.mkdir(directory,{recursive:true});
@@ -72,7 +72,7 @@ export async function verifyAgencyLanding({dashboardUrl,publicPaths=['/website-d
         await verifyContactActions();
       }
       const dockTop=await page.locator('[data-contact-actions]').evaluate(element=>element.getBoundingClientRect().top);
-      assert.ok(await page.locator('footer a[href="/terms-and-conditions/"]').evaluate((element,top)=>element.getBoundingClientRect().bottom<top,dockTop),'Footer links are reachable above the contact dock.');
+      assert.ok(await page.locator('footer a[href$="#terms-and-conditions"]').evaluate((element,top)=>element.getBoundingClientRect().bottom<top,dockTop),'Footer links are reachable above the contact dock.');
       await page.evaluate(()=>scrollTo({top:0,behavior:'instant'}));
       await page.screenshot({path:path.join(directory,`seo-home-${width}.png`),fullPage:true});
       result.widths.push({width,horizontalOverflow:false,h1Clipping:false,screenshot:`tests/artifacts/seo-home-${width}.png`});
@@ -88,6 +88,14 @@ export async function verifyAgencyLanding({dashboardUrl,publicPaths=['/website-d
     assert.ok(await dock.evaluate(element=>element.getAnimations({subtree:true}).length)>0,'Contact actions animate when motion is allowed.');
     await page.emulateMedia({reducedMotion:'reduce'});
     result.contactActions.shortScreens=true;result.contactActions.animationVerified=true;
+    for(const id of ['privacy-policy','terms-and-conditions']){
+      const disclosure=page.locator('footer details#'+id);
+      await disclosure.locator('summary').click();
+      assert.notEqual(await disclosure.getAttribute('open'),null);
+      assert.ok((await disclosure.locator('p').first().innerText()).length>80);
+      await disclosure.locator('summary').click();
+    }
+    assert.equal(await page.locator('form a[href="/#privacy-policy"]').count(),1);
     await page.setViewportSize({width:1440,height:1000});await page.evaluate(()=>scrollTo({top:0,behavior:'instant'}));
     result.lab.desktop=await page.evaluate(()=>({...window.__websynkVitals,navigation:performance.getEntriesByType('navigation')[0]?.toJSON(),resources:performance.getEntriesByType('resource').map(entry=>({name:entry.name,transferSize:entry.transferSize,decodedBodySize:entry.decodedBodySize}))}));
     await page.setViewportSize({width:390,height:844});await page.goto(origin,{waitUntil:'networkidle'});
@@ -104,20 +112,11 @@ export async function verifyAgencyLanding({dashboardUrl,publicPaths=['/website-d
     await page.getByLabel('A little about your project').fill('Updated project details should clear the old draft.');assert.equal(await draft.count(),0);
     await page.locator('input[name=website]').evaluate(element=>{element.value='spam.example';});await page.getByRole('button',{name:'Prepare my free consultation'}).click();assert.match(await page.locator('form [role=alert]').innerText(),/could not prepare/);assert.equal(await draft.count(),0);
     result.form={invalidPhoneRejected:true,draftPrepared:true,externalMessageSent:false,staleDraftCleared:true,honeypotRejected:true,privacyConsentRequired:true};
-    await page.goto(origin+'/contact-us/',{waitUntil:'networkidle'});assert.equal(await page.locator('h1').count(),1);assert.equal(await page.locator('form').count(),1);assert.equal(await page.locator('a[href="tel:+919115082252"]').count()>0,true);
-    result.publicPageResponsive=[];
-    for(const pathname of publicPaths.filter(value=>value!=='/')){
-      await page.goto(origin+pathname,{waitUntil:'domcontentloaded'});
-      for(const width of [320,375,390,768,1024,1440,1920]){
-        await page.setViewportSize({width,height:width<600?844:1000});
-        assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,`${pathname} overflow at${width}`);
-        assert.equal(await page.locator('h1').evaluate(element=>element.scrollWidth>element.clientWidth+1),false,`${pathname} H1 clipping at${width}`);
-      }
-      result.publicPageResponsive.push({path:pathname,widths:[320,375,390,768,1024,1440,1920],horizontalOverflow:false,h1Clipping:false});
-    }
+    await page.goto(origin+'/#contact',{waitUntil:'networkidle'});assert.equal(await page.locator('h1').count(),1);assert.equal(await page.locator('form').count(),1);assert.equal(await page.locator('a[href="tel:+919115082252"]').count()>0,true);
+    result.landingOnly=true;
     const nojs=await browser.newContext({javaScriptEnabled:false,viewport:{width:390,height:844}});const staticPage=await nojs.newPage();await staticPage.goto(origin,{waitUntil:'domcontentloaded'});assert.equal(await staticPage.locator('h1').count(),1);assert.match(await staticPage.locator('#services').innerText(),/Website development/);assert.ok(await staticPage.locator('main details p').count()>=10);await staticPage.locator('header summary').click();assert.notEqual(await staticPage.locator('header details').getAttribute('open'),null);await nojs.close();result.javascriptDisabled=true;
     assert.deepEqual(errors,[]);assert.deepEqual(failedAssets,[]);assert.equal(requests.some(url=>new URL(url).hostname!=='127.0.0.1'&&new URL(url).hostname!=='localhost'&&url!==tagManagerUrl),false,'Only the owner-provided GTM loader is requested externally; it is stubbed during QA.');
-    await fs.writeFile(path.join(repository,'docs/seo-browser-results.json'),JSON.stringify(result,null,2)+'\n');return result;
+    await fs.writeFile(path.join(directory,'landing-browser-results.json'),JSON.stringify(result,null,2)+'\n');return result;
   }catch(error){await page.screenshot({path:path.join(directory,'seo-failure.png'),fullPage:true}).catch(()=>{});throw error;}
   finally{await browser.close();}
 }

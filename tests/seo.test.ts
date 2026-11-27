@@ -6,7 +6,6 @@ import {
   pageMetadata, publicBusinessDetails, serializeSchema, siteUrl, websiteSchema,
 } from '../apps/dashboard/lib/seo.js';
 import { agencyAddress, agencyMapsUrl, agencyName, agencyPhoneDisplay, establishedYear } from '../apps/dashboard/lib/agency.js';
-import { blogArticle, blogArticles, publicPage, publicPages } from '../apps/dashboard/lib/seo-content.js';
 import sitemapModule from '../apps/dashboard/app/sitemap.js';
 import robotsModule from '../apps/dashboard/app/robots.js';
 
@@ -112,55 +111,11 @@ test('JSON-LD serialization cannot terminate its script and preserves the origin
   assert.deepEqual(JSON.parse(serialized), data);
 });
 
-test('public content has distinct routes and metadata with useful sections and resolvable related pages', () => {
-  const routes = publicPages.map(page => page.slug);
-  assert.equal(new Set(routes).size, routes.length);
-  assert.equal(new Set(publicPages.map(page => page.title)).size, publicPages.length);
-  assert.equal(new Set(publicPages.map(page => page.description)).size, publicPages.length);
-  assert.ok(publicPages.some(page => page.serviceType), 'The service architecture must contain actual service pages.');
-  for (const page of publicPages) {
-    assert.match(page.slug, /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
-    assert.ok(page.title.trim().length > 15 && page.description.trim().length > 50, page.slug + ' needs descriptive metadata.');
-    assert.ok(page.heading.trim().length > 15 && page.introduction.trim().length > 40, page.slug + ' needs a useful introduction.');
-    assert.equal(publicPage(page.slug), page);
-    for (const section of page.sections) {
-      assert.ok(section.heading.trim());
-      assert.ok(section.paragraphs.length > 0);
-      assert.ok(section.paragraphs.every(paragraph => paragraph.trim().length > 20), page.slug + ' contains an empty/thin paragraph.');
-    }
-    if (page.serviceType) {
-      const prose = page.sections.flatMap(section => section.paragraphs).join(' ');
-      assert.ok(prose.length > 350, page.slug + ' needs more than a heading and CTA.');
-    }
-    for (const related of page.related) {
-      assert.ok(routes.includes(related), `Orphan related destination on ${page.slug}: ${related}`);
-      assert.notEqual(related, page.slug, 'Related links should lead to another page.');
-    }
-  }
-  assert.equal(publicPage('admin'), undefined);
-  assert.equal(publicPage('a-page-that-does-not-exist'), undefined);
-});
-
-test('blog guides are substantive, uniquely addressable and link to real public destinations', () => {
-  assert.ok(blogArticles.length > 0);
-  assert.equal(new Set(blogArticles.map(article => article.slug)).size, blogArticles.length);
-  assert.equal(new Set(blogArticles.map(article => article.title)).size, blogArticles.length);
-  for (const article of blogArticles) {
-    assert.match(article.slug, /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
-    assert.ok(article.title.trim().length > 15 && article.description.trim().length > 50);
-    assert.equal(blogArticle(article.slug), article);
-    assert.ok(article.sections.flatMap(section => section.paragraphs).join(' ').length > 600, article.slug + ' should explain its subject.');
-    for (const related of article.related) assert.ok(publicPage(related), article.slug + ' has a broken related page.');
-    for (const reference of article.references ?? []) assert.equal(new URL(reference.href).protocol, 'https:');
-  }
-  assert.equal(blogArticle('does-not-exist'), undefined);
-});
-
 test('the production sitemap contains only canonical public pages and excludes retired or private routes', () => withIndexing(true, () => {
   const entries = sitemap();
   const urls = entries.map(entry => entry.url);
   assert.equal(new Set(urls).size, urls.length);
-  const intended = ['/', ...publicPages.map(page => `/${page.slug}/`), ...blogArticles.map(article => `/blog/${article.slug}/`)];
+  const intended = ['/'];
   assert.deepEqual(new Set(urls), new Set(intended.map(path => siteUrl + path)));
   for (const entry of entries) {
     const url = new URL(entry.url);

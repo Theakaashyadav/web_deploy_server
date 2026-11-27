@@ -4,12 +4,11 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { startBuiltSite, requestHost, repository } from '../helpers/site-server.mjs';
 import { verifyAgencyLanding } from '../e2e/landing-browser.mjs';
-import { publicPages, blogArticles } from '../../apps/dashboard/lib/seo-content.ts';
 
 const canonical='https://websynk.in';
-test('standalone Websynk: production HTML, crawlability, routing, business data and responsive conversion journey',{timeout:240000},async t=>{
+test('Websynk landing only: production HTML, removed pages, SEO and responsive contact actions',{timeout:240000},async t=>{
   const site=await startBuiltSite();t.after(site.stop);
-  const pagePaths=['/',...publicPages.map(page=>`/${page.slug}/`),...blogArticles.map(article=>`/blog/${article.slug}/`)];
+  const pagePaths=['/'];
   const results:any={environment:'local production build',date:'2026-11-27',paths:[],externalValidators:'Not certified by local tests'};
   const htmlByPath=new Map<string,string>(),titles=new Set<string>(),descriptions=new Set<string>();
   await t.test('every public page serves complete indexable HTML and distinct metadata',async()=>{
@@ -56,7 +55,7 @@ test('standalone Websynk: production HTML, crawlability, routing, business data 
       if(checked.has(destination.pathname))continue;checked.add(destination.pathname);
       const response=await fetch(destination,{redirect:'manual'});assert.equal(response.status,200,pathname+'brokenlink'+href);await response.body?.cancel();
     }
-    for(const pathname of ['/admin/','/login/','/api/v1/auth/setup/','/a-page-that-does-not-exist/','/blog/not-a-real-article/']){const response=await fetch(site.origin+pathname,{redirect:'manual'});assert.equal(response.status,404,pathname);await response.body?.cancel();}
+    for(const pathname of ["/admin/","/login/","/api/v1/auth/setup/","/website-development-greater-noida/","/digital-marketing-greater-noida/","/seo-services-greater-noida/","/meta-ads-agency-greater-noida/","/google-ads-agency-greater-noida/","/ecommerce-website-development/","/app-development/","/about-us/","/contact-us/","/blog/","/privacy-policy/","/terms-and-conditions/","/blog/choosing-a-website-development-company-greater-noida/","/blog/website-development-cost-greater-noida/","/blog/seo-vs-google-ads-for-business/","/a-page-that-does-not-exist/"]){const response=await fetch(site.origin+pathname,{redirect:'manual'});assert.equal(response.status,404,pathname);await response.body?.cancel();}
     const slash=await fetch(site.origin+'/about-us',{redirect:'manual'});assert.equal(slash.status,308);assert.ok(slash.headers.get('location')?.endsWith('/about-us/'));
     const www:any=await requestHost(site.origin,'www.websynk.in','/about-us/');assert.equal(www.status,308);assert.equal(www.headers.location,'https://websynk.in/about-us/');
     const wwwRoot:any=await requestHost(site.origin,'www.websynk.in','/');assert.equal(wwwRoot.headers.location,'https://websynk.in/');
@@ -65,7 +64,7 @@ test('standalone Websynk: production HTML, crawlability, routing, business data 
     results.routes={internalLinks:'pass',removedPlatformStatus:404,wwwRedirect:308,trailingSlashRedirect:308};
   });
   await t.test('browser tests cover all requested widths, no-JavaScript content, real validation and honest WhatsApp draft',async()=>{
-    results.browser=await verifyAgencyLanding({dashboardUrl:site.origin,publicPaths:pagePaths});
+    results.browser=await verifyAgencyLanding({dashboardUrl:site.origin});
   });
-  await fs.mkdir(path.join(repository,'docs'),{recursive:true});await fs.writeFile(path.join(repository,'docs/seo-validation-results.json'),JSON.stringify(results,null,2)+'\n');
+  await fs.mkdir(path.join(repository,'tests/artifacts'),{recursive:true});await fs.writeFile(path.join(repository,'tests/artifacts/landing-integration-results.json'),JSON.stringify(results,null,2)+'\n');
 });

@@ -1,41 +1,21 @@
-# Websynk Technologies website
+# Websynk landing page
 
-The standalone Websynk website for website development, digital marketing and related services in Greater Noida and Noida. Built with Next.js App Router, React, TypeScript and CSS Modules. The existing public visual identity is retained. There is no DeployHub administrator panel, deployment API, worker, database dependency or project-hosting gateway.
+This repository contains only the Websynk Technologies landing page. Services, company information, FAQs, enquiries, privacy and project terms are sections on `/`. Former service, company and blog URLs return 404. The former DeployHub platform is not part of the website.
 
-## Run locally
+The Next.js, React, TypeScript and CSS Modules setup, website artwork, favicon, social image, metadata, robots and sitemap are retained. The sitemap lists only https://websynk.in/.
 
-Use Node.js 22.18 or newer and run commands from this repository:
+## Run and verify
 
-```powershell
-npm ci
-npm run dev
-```
+Use Node.js 22.18 or newer. Run `npm ci` and `npm run dev` from this repository. Local address: http://127.0.0.1:3100. The runner refuses occupied ports and protects the separate Avynex project on port 3000.
 
-Default local address: `http://localhost:3100`. The runner refuses an occupied port. Choose a different available `PORT` when necessary. Port 3000 belongs to the separate Avynex project; this repository does not read or modify that project.
-
-## Verification
-
-```powershell
-npm run typecheck
-npm test
-npm run build
-npm run test:integration
-```
-
-The integration command checks the built website and responsive browser behavior using a disposable local port, without sending enquiries or requiring a backend. After building, `npm run preview` serves the production build on local loopback with the same occupied-port and separate-project safeguards as development. Chrome can be selected through `E2E_CHROME` if the default local executable is unavailable.
+Run `npm run typecheck`, `npm test`, `npm run build` and `npm run test:integration`. After building, `npm run preview` serves the production build locally. Browser checks cover seven widths, the persistent contact controls, menu, enquiry validation and inline policies. Generated verification artifacts are ignored under tests/artifacts; no enquiry is sent.
 
 ## Hosting
 
-Build command: `npm run build`. Repository-relative output: `apps/dashboard/.next`. The public site does not require database credentials or `API_ORIGIN`. See [Hostinger configuration](docs/HOSTINGER.md).
+Hostinger automatically deploys the GitHub main branch. Build: `npm run build`; output: `apps/dashboard/.next`; start command when needed: `npm start`. Production respects PORT and binds to 0.0.0.0; WEBSYNK_HOST can override it. The workspace path is retained for hosting compatibility.
 
-`npm start` starts the built website for hosting. It respects the provider's `PORT` (including 3000), defaults to 3100, and binds to `0.0.0.0` so the hosting proxy can reach it. Set `WEBSYNK_HOST` to override the bind address. Use `npm run preview` for a local preview instead.
+The canonical origin is https://websynk.in. Set WEBSYNK_NOINDEX=true before building staging hosts; leave it false for production. Set GOOGLE_SITE_VERIFICATION only to a genuine owner-provided value. Google Tag Manager container GTM-P7S6T33L is installed; its account configuration is managed separately.
 
-The canonical production origin is `https://websynk.in`; non-WWW URLs use trailing slashes. Configure HTTPS and the www-to-non-www redirect at the hosting provider as well. `WEBSYNK_NOINDEX=true` is available for staging environments; leave it false for production. Set `GOOGLE_SITE_VERIFICATION` only to the actual Search Console value supplied by the owner. No Google Business Profile URL is fabricated.
+Call and WhatsApp links use +91 91150 82252. The form prepares a WhatsApp draft for the visitor to review and send, without storing an enquiry on the website. Fixed Call Now and WhatsApp controls remain visible while scrolling, with reduced-motion support.
 
-The owner-provided Google Tag Manager container `GTM-P7S6T33L` is installed. Its published tags determine tracking behavior; GA4 and Google Ads account configurations have not been verified. No duplicate direct GA4 script is added, and enquiry personal information is not intentionally pushed to the data layer.
-
-The enquiry form creates a WhatsApp draft for the visitor to review and send. It does not store enquiries in a website database or claim that a message was delivered. Telephone and Maps links use the business information supplied and confirmed by the owner.
-
-The prior platform source is recoverable from local Git branch `backup/pre-standalone-seo-20261127`. Ignored historical data, credentials and local caches are untouched and are not part of the website build. No production deployment is performed automatically.
-
-See [the SEO implementation report](SEO-IMPLEMENTATION-REPORT.md) for implemented changes, evidence, keyword mapping and remaining account-dependent actions.
+No database, API, deployment worker or administrator is required. Git history retains the earlier implementation. Cleanup is scoped to this repository; the separate Avynex project is outside scope.
