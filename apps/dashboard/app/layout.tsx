@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import './base.css';
 export const metadata: Metadata = {
-  title: 'Websynk Technologies | Websites, Apps & Digital Marketing',
-  description: 'Bring your business online with Websynk Technologies. Website development, app development, digital marketing, SEO, branding and ecommerce solutions.',
+  title: 'Websynk Technologies | Web, App & Digital Growth Agency in Noida',
+  description: 'Established in 2021, Websynk Technologies has delivered 2,000+ projects. Discover website and app development, branding, SEO and digital marketing from our Noida team.',
   openGraph: {
-    title: 'Websynk Technologies — Your next move, made digital',
-    description: 'Website and app development, thoughtful design and digital marketing for your next chapter.',
+    title: 'Websynk Technologies | Your Digital Growth Partner Since 2021',
+    description: 'Your digital growth partner since 2021. More than 2,000 projects delivered across web development, apps, design and digital marketing. Based in Sector 142, Noida.',
     type: 'website',
   },
 };

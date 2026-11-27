@@ -27,6 +27,7 @@ export async function verifyAgencyLanding({ dashboardUrl, mockAdmin = false }) {
   }
   const page = await context.newPage();
   page.setDefaultTimeout(15000);
+  page.setDefaultNavigationTimeout(60000);
   const errors = [], publicApiRequests = [], failedAssets = [];
   let publicPage = true;
   page.on('pageerror', error => errors.push(error.message));
@@ -47,6 +48,10 @@ export async function verifyAgencyLanding({ dashboardUrl, mockAdmin = false }) {
     const content = await page.locator('body').innerText();
     assert.match(content, /Websynk/i);
     assert.match(content, /Technologies/i);
+    assert.match(content, /2021/, 'The landing page should show the supplied establishment year.');
+    assert.match(content, /2,?000\+/, 'The landing page should show the supplied delivered-project count.');
+    assert.match(content, /603,?\s+Advant Navis Business Park/i, 'The supplied office address should be visible.');
+    assert.match(content, /Sector\s+142,?\s+Noida/i, 'The office address should include its sector and city.');
     assert.match(await page.locator('#services').innerText(), /website|web development/i);
     assert.match(await page.locator('#services').innerText(), /app development|mobile apps/i);
     assert.match(await page.locator('#services').innerText(), /digital marketing/i);
@@ -58,6 +63,16 @@ export async function verifyAgencyLanding({ dashboardUrl, mockAdmin = false }) {
     const response = await page.goto(origin);
     assert.equal(response.status(), 200, 'The public landing page should load successfully.');
     await assertPublicPage();
+    const phoneLinks = page.locator('a[href="tel:+919115082252"]');
+    assert.ok(await phoneLinks.count() > 0, 'Visitors should be able to call the supplied agency number.');
+    assert.ok(await phoneLinks.first().isVisible(), 'The agency phone link should be visible.');
+    assert.match(await phoneLinks.first().innerText(), /91150\s*82252|9115082252/, 'The phone link should show a readable business number.');
+    const mapsLinks = page.locator('a[href^="https://www.google.com/maps/search/"]');
+    assert.ok(await mapsLinks.count() > 0, 'The office address should link to a map search.');
+    const mapsUrl = new URL(await mapsLinks.first().getAttribute('href'));
+    assert.match(mapsUrl.searchParams.get('query') || '', /603, Advant Navis Business Park, Sector 142, Noida/);
+    await phoneLinks.first().focus();
+    assert.equal(await phoneLinks.first().evaluate(link => document.activeElement === link), true, 'Telephone contact should be keyboard accessible.');
     const whatsappLinks = await page.locator('a[href^="https://wa.me/"]').evaluateAll(links => links.map(link => link.href));
     assert.ok(whatsappLinks.length >= 2, 'The landing page needs prominent and floating WhatsApp contact links.');
     for (const href of whatsappLinks) {
@@ -114,7 +129,7 @@ export async function verifyAgencyLanding({ dashboardUrl, mockAdmin = false }) {
     await page.getByRole('heading', { name: 'Sign in to your workspace' }).waitFor();
     assert.deepEqual(failedAssets, [], 'Landing and admin styles/scripts should load successfully.');
     assert.deepEqual(errors, [], 'Landing and login navigation should not produce browser errors.');
-    console.log('Landing browser checks passed: public services, supplied WhatsApp number, API independence, admin/login routes, return navigation, responsive layouts, mobile menu and assets.');
+    console.log('Landing browser checks passed: supplied company history, project count, Noida office, phone and WhatsApp contacts, public services, API independence, admin/login routes, return navigation, responsive layouts, mobile menu and assets.');
     if (mockAdmin) console.log('Admin initialization responses were mocked for production-asset QA; this run does not verify authentication or backend availability.');
   } catch (error) {
     await page.screenshot({ path: path.join(screenshots, 'agency-failure.png'), fullPage: true }).catch(() => {});
