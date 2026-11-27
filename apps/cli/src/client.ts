@@ -124,4 +124,11 @@ export class DeployHubClient {
       return await this.wait(deployment.id, options);
     } finally { await archive.cleanup(); }
   }
+  async deployGitHub(repository:string,options:{project:string;branch?:string;directory?:string;production?:boolean;onLog?:(log:Log)=>void;onStatus?:(deployment:Deployment)=>void}):Promise<Deployment>{
+    const project=await this.ensureProject(options.project,{framework:'static'});
+    const deployment=await this.request<Deployment>(`/projects/${encodeURIComponent(project.id)}/github-deployments`,{
+      method:'POST',body:JSON.stringify({repository,branch:options.branch,directory:options.directory??'.',environment:options.production?'production':'preview',authorizeProduction:options.production===true}),
+    });
+    return this.wait(deployment.id,options);
+  }
 }

@@ -7,7 +7,7 @@ import { deflateRawSync } from 'node:zlib';
 import http from 'node:http';
 import { safePath, extractZip } from '../packages/storage/src/safe-files.js';
 import { detectFramework } from '../packages/framework-adapters/src/index.js';
-import { slugify, productionUrl, previewUrl, config } from '../packages/shared/src/config.js';
+import { slugify, runtimeProductionUrl as productionUrl, runtimePreviewUrl as previewUrl, config } from '../packages/shared/src/config.js';
 import { isolatedBuildArguments, redact,verifyArtifact } from '../packages/deployment-engine/src/index.js';
 import { encryptSecret,decryptSecret } from '../packages/shared/src/secrets.js';
 

@@ -42,6 +42,14 @@ server.registerTool('list_projects', {
   description: 'List projects allowed by the API key.', inputSchema: {}, annotations: { readOnlyHint: true },
 }, protect(async () => api.request('/projects')));
 
+server.registerTool('deploy_github_site', {
+  description:'Connect a public GitHub repository containing ready static HTML, CSS and JavaScript. No website files are stored locally and no build commands run. Waits for a checked preview by default.',
+  inputSchema:{project:reference,repository:z.string().url(),branch:z.string().optional(),directory:z.string().default('.'),...productionArgs},annotations,
+},protect(async args=>{
+  requireProductionAuthorization(args);
+  return api.deployGitHub(args.repository,{project:args.project,branch:args.branch,directory:args.directory,production:args.production});
+}));
+
 const folderSchema = { project: reference, directory: z.string().describe('Absolute path to an explicitly authorized local website directory.'), ...productionArgs };
 async function deployFolder(args: { project: string; directory: string; production: boolean; authorizeProduction: boolean }, requireExisting = false): Promise<Deployment> {
   requireProductionAuthorization(args);

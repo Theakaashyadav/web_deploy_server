@@ -14,7 +14,8 @@ import { ZipArchive } from 'archiver';
 import { z } from 'zod';
 import { createMultipartUpload, validateUploadPaths } from './uploads.js';
 import { db, jsonSafe } from '../../../packages/database/src/index.js';
-import { config, productionUrl, previewUrl, slugify } from '../../../packages/shared/src/config.js';
+import { config, productionUrl, previewUrl, runtimeProductionUrl, runtimePreviewUrl, slugify } from '../../../packages/shared/src/config.js';
+import { parseGitHubRepository, normalizeGitHubBranch, normalizeGitHubDirectory } from '../../../packages/shared/src/github-static.js';
 import { safePath, inventory } from '../../../packages/storage/src/safe-files.js';
 import { activateDeployment, terminalStates } from '../../../packages/deployment-engine/src/index.js';
 import { encryptSecret } from '../../../packages/shared/src/secrets.js';
@@ -95,6 +96,17 @@ export async function createApp() {
     next();
   });
   router.get('/auth/setup',wrap(async(_request,response)=>send(response,{required:await db.user.count() === 0,setupTokenRequired:process.env.NODE_ENV === 'production' || !!process.env.SETUP_TOKEN})));
+  router.get('/public/sites/:slug',wrap(async(request,response)=>{
+    const project=await db.project.findUnique({where:{slug:request.params.slug}});
+    if(!project || project.status!=='active')statusError('Website not found',404);
+    const id=typeof request.query.deployment==='string' ? request.query.deployment : project!.currentDeploymentId;
+    if(!id)statusError('Website not found',404);
+    const deployment=await db.deployment.findFirst({where:{id:id!,projectId:project!.id,status:'live'},include:{artifact:true}});
+    if(!deployment?.artifact)statusError('Website not found',404);
+    const url=request.query.deployment ? runtimePreviewUrl(project!,deployment!) : runtimeProductionUrl(project!);
+    if(new URL(url).origin===new URL(config.dashboardOrigin).origin)statusError('Hosted websites require an independent runtime origin',503);
+    response.setHeader('Cache-Control','no-store');send(response,{url,deploymentId:deployment!.id});
+  }));
   const authLimiter=rateLimit({windowMs:900000,limit:20,standardHeaders:'draft-7',legacyHeaders:false});
   router.post('/auth/setup',authLimiter,wrap(async(request,response)=>{
     const body=z.object({email:z.string().email().max(254),name:z.string().trim().min(1).max(100),password:z.string().min(12).max(72).refine(value=>Buffer.byteLength(value,'utf8')<=72,'Password must be at most 72 UTF-8 bytes'),setupToken:z.string().optional()}).parse(request.body);
@@ -138,7 +150,8 @@ export async function createApp() {
   router.get('/capabilities',wrap(async(request,response)=>{
     requireScope(request,'read');
     const report=await db.applicationSetting.findUnique({where:{key:workerCapabilitiesKey}});
-    send(response,deploymentReadiness(report?.value));
+    const readiness=deploymentReadiness(report?.value);
+    send(response,config.deploymentMode==='legacy' ? {...readiness,deploymentMode:'legacy'} : {...readiness,deploymentMode:'github-static',staticUploadsAvailable:false,sourceBuildsAvailable:false,dynamicRuntimeAvailable:false,supportedRuntimeFrameworks:[],githubStaticAvailable:readiness.workerOnline,reason:readiness.workerOnline?'GitHub static sites are ready. Files stay in the public repository; only deployment metadata is saved.':'Start the deployment worker to verify GitHub static sites.',actions:readiness.workerOnline?[]:['Start or restart the DeployHub worker.']});
   }));
   router.get('/capabilities/setup-guide',wrap(async(request,response)=>{
     requireScope(request,'read');response.type('text/markdown').attachment('DeployHub-runtime-setup.md').sendFile(fileURLToPath(new URL('../../../docs/RUNTIMES.md',import.meta.url)));
@@ -153,11 +166,12 @@ export async function createApp() {
   router.post('/projects',wrap(async(request,response)=>{
     requireScope(request,'manage');if(request.identity!.projectId)statusError('A project-scoped key cannot create projects',403);
     const body=projectFields.parse(request.body);
+    if(config.deploymentMode!=='legacy' && ((body.framework && !['auto','static'].includes(body.framework)) || body.buildCommand || body.installCommand))statusError('Only ready static sites from GitHub are supported. Build your site in GitHub Actions first.');
     const base=slugify(body.slug || body.name);
     let slug=base;let suffix=1;
     while(await db.project.findUnique({where:{slug}})) slug=`${base}-${++suffix}`;
     for (const relative of [body.rootDirectory,body.outputDirectory]) if(relative && relative !== '.') safePath(config.workspaces,relative);
-    const project=await db.project.create({data:{...body,slug,members:{create:{userId:request.identity!.id,role:'developer'}}}});
+    const project=await db.project.create({data:{...body,...(config.deploymentMode!=='legacy'?{framework:'static'}:{}),slug,members:{create:{userId:request.identity!.id,role:'developer'}}}});
     await audit(request,'project.create',project.id);response.status(201);send(response,projectJson(project));
   }));
   router.get('/projects/:id',wrap(async(request,response)=>{await authorizedProject(request,request.params.id);send(response,projectJson(await db.project.findUniqueOrThrow({where:{id:request.params.id},include:{deployments:{orderBy:{createdAt:'desc'}},domains:true}})));}));
@@ -173,11 +187,31 @@ export async function createApp() {
     if(pending)statusError('Cancel or finish active deployments before deletion',409);
     const deployments=await db.deployment.findMany({where:{projectId:request.params.id},include:{artifact:true}});
     await audit(request,'project.delete',request.params.id);await db.project.delete({where:{id:request.params.id}});
-    for(const d of deployments){await fs.rm(d.uploadPath,{recursive:true,force:true}).catch(()=>{});if(d.artifact)await fs.rm(d.artifact.path,{recursive:true,force:true}).catch(()=>{});}
+    for(const d of deployments){if(d.uploadPath)await fs.rm(d.uploadPath,{recursive:true,force:true}).catch(()=>{});if(d.artifact?.path)await fs.rm(d.artifact.path,{recursive:true,force:true}).catch(()=>{});}
     send(response,{success:true});
   }));
   const upload=createMultipartUpload({directory:config.uploads,maxBytes:config.maxUploadBytes,maxFiles:config.maxFiles});
-  router.post('/projects/:id/deployments',wrap(async(request,_response,next)=>{await authorizedProject(request,request.params.id,'deploy');next();}),upload,wrap(async(request,response)=>{
+  async function queueGitHub(request:AuthRequest,project:{id:string;status:string},input:unknown) {
+    if(project.status!=='active')statusError('Restore or enable this project before deploying',409);
+    const body=z.object({repository:z.string().trim().min(1).max(300),branch:z.string().trim().max(200).optional(),directory:z.string().trim().max(300).default('.'),environment:z.enum(['preview','production']).default('preview'),authorizeProduction:z.boolean().optional()}).parse(input);
+    if(body.environment==='production' && body.authorizeProduction!==true)statusError('Production deployments require authorizeProduction: true');
+    try {body.repository=parseGitHubRepository(body.repository).repository;body.directory=normalizeGitHubDirectory(body.directory);if(body.branch)body.branch=normalizeGitHubBranch(body.branch);} catch(error) {statusError((error as Error).message);}
+    const id='dpl-'+crypto.randomBytes(6).toString('hex');
+    for(let attempt=0;attempt<3;attempt++)try {
+      return await db.$transaction(async tx=>{
+        const latest=await tx.deployment.findFirst({where:{projectId:project.id},orderBy:{version:'desc'}});
+        const deployment=await tx.deployment.create({data:{id,projectId:project.id,environment:body.environment,framework:'static',source:'github',uploadPath:'',version:(latest?.version||0)+1,configuration:JSON.stringify({github:{repository:body.repository,branch:body.branch||'',directory:body.directory}})},include:{project:true,artifact:true}});
+        await tx.deploymentLog.create({data:{deploymentId:id,message:'GitHub static site queued. No repository clone, upload, or local website artifact will be created.'}});return deployment;
+      });
+    } catch(error) {if((error as {code?:string}).code!=='P2002'||attempt===2)throw error;}
+    throw new Error('Unable to queue deployment');
+  }
+  router.post('/projects/:id/github-deployments',wrap(async(request,response)=>{
+    const project=await authorizedProject(request,request.params.id,'deploy');
+    const deployment=await queueGitHub(request,project,request.body);
+    await audit(request,'deployment.github.create',project.id,deployment.id);response.status(202);send(response,deploymentJson(deployment));
+  }));
+  router.post('/projects/:id/deployments',wrap(async(request,_response,next)=>{await authorizedProject(request,request.params.id,'deploy');if(config.deploymentMode!=='legacy')statusError('File uploads are disabled. Connect a public GitHub repository using github-deployments.',410);next();}),upload,wrap(async(request,response)=>{
     const files=Object.values(request.files || {}).flat() as Express.Multer.File[];
     let retained=false,uploadPath='';
     try {
@@ -243,6 +277,12 @@ export async function createApp() {
     if(!terminalStates.has(original!.status))statusError('Wait for this deployment to finish or cancel it before retrying',409);
     const body=z.object({environment:z.enum(['preview','production']).default('preview'),authorizeProduction:z.boolean().optional()}).parse(request.body || {});
     if(body.environment==='production' && body.authorizeProduction!==true)statusError('Production retries require authorizeProduction: true');
+    if(original!.source==='github'){
+      const github=JSON.parse(original!.configuration).github;
+      const deployment=await queueGitHub(request,project,{repository:github.repository,branch:github.branch,directory:github.directory,...body});
+      await audit(request,'deployment.github.retry',project.id,deployment.id);response.status(202);return send(response,deploymentJson(deployment));
+    }
+    if(config.deploymentMode!=='legacy')statusError('Retained uploads cannot be retried in GitHub static mode. Connect the repository instead.',410);
     const relative=path.relative(config.uploads,original!.uploadPath);
     if(!relative || relative==='..' || relative.startsWith('..'+path.sep) || path.isAbsolute(relative))statusError('Retained deployment source is unavailable',409);
     const stat=await fs.lstat(original!.uploadPath).catch(()=>null);
@@ -272,9 +312,10 @@ export async function createApp() {
   router.get('/deployments/:id/artifact',wrap(async(request,response)=>{
     const deployment=await db.deployment.findUnique({where:{id:request.params.id},include:{artifact:true}});if(!deployment)statusError('Deployment not found',404);await authorizedProject(request,deployment!.projectId);if(!deployment!.artifact || deployment!.status!=='live')statusError('Artifact unavailable',404);
     if((deployment!.artifact as {kind?:string})?.kind==='runtime')statusError('This deployment is a container image. Static ZIP download is unavailable for server applications.',409);
+    if(deployment!.artifact!.kind==='github-static')statusError('Website files stay on GitHub. Download them from the connected repository.',409);
     response.attachment(`${deployment!.id}.zip`);const archive=new ZipArchive({zlib:{level:6}});archive.on('error',error=>response.destroy(error));archive.pipe(response);archive.directory(deployment!.artifact!.path,false);await archive.finalize();
   }));
-  async function fileRoot(request:AuthRequest){const project=await authorizedProject(request,request.params.id);if(!project.currentDeploymentId)statusError('No production deployment',404);const artifact=await db.deploymentArtifact.findUnique({where:{deploymentId:project.currentDeploymentId!}});if(!artifact)statusError('Artifact not found',404);if((artifact as {kind?:string})?.kind==='runtime')statusError('This website runs in an immutable container. Update its uploaded source instead of browsing a static artifact.',409);return artifact!.path;}
+  async function fileRoot(request:AuthRequest){const project=await authorizedProject(request,request.params.id);if(!project.currentDeploymentId)statusError('No production deployment',404);const artifact=await db.deploymentArtifact.findUnique({where:{deploymentId:project.currentDeploymentId!}});if(!artifact)statusError('Artifact not found',404);if(artifact!.kind==='github-static')statusError('Website files stay on GitHub. Browse and edit them in the connected repository.',409);if((artifact as {kind?:string})?.kind==='runtime')statusError('This website runs in an immutable container. Update its uploaded source instead of browsing a static artifact.',409);return artifact!.path;}
   router.get('/projects/:id/files',wrap(async(request,response)=>{
     const root=await fileRoot(request);const relative=String(request.query.path || '');const directory=relative ? safePath(root,relative) : root;
     const stat=await fs.lstat(directory);if(!stat.isDirectory() || stat.isSymbolicLink())statusError('Not a directory');

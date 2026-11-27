@@ -5,6 +5,7 @@ import { db } from '../../../packages/database/src/index.js';
 import { config } from '../../../packages/shared/src/config.js';
 import { safePath } from '../../../packages/storage/src/safe-files.js';
 import { proxyRuntime, proxyRuntimeUpgrade } from '../../../packages/runtime-adapters/src/proxy.js';
+import { assertGitHubStaticSource, fetchGitHubStaticFile, normalizeGitHubFilePath } from '../../../packages/shared/src/github-static.js';
 
 const app = express();
 app.disable('x-powered-by');
@@ -47,6 +48,34 @@ app.use(async(request,response,next)=>{
       if(!target.artifact.runtimeEndpoint)return void response.status(503).type('text').send('The application runtime has no verified private endpoint.');
       proxyRuntime(request,response,{endpoint:target.artifact.runtimeEndpoint,container:target.artifact.runtimeContainer||undefined,deploymentId:target.deployment.id,protocol:config.siteProtocol});
       return;
+    }
+    if(target.artifact.kind==='github-static'){
+      if(!['GET','HEAD'].includes(request.method))return void response.sendStatus(405);
+      let file:string;
+      try {
+        file=decodeURIComponent(request.path).replace(/^\//,'');
+        // Directory URLs keep their trailing slash so relative assets resolve in the browser.
+        if(file && !file.endsWith('/') && !path.posix.extname(file)){
+          normalizeGitHubFilePath(file+'/');
+          response.setHeader('Location',request.path+'/'+(request.url.includes('?')?request.url.slice(request.url.indexOf('?')):''));
+          return void response.status(308).end();
+        }
+        normalizeGitHubFilePath(file);
+      }catch{return void response.sendStatus(404);}
+      const source:unknown=JSON.parse(target.deployment.configuration).github;
+      assertGitHubStaticSource(source);
+      let result=await fetchGitHubStaticFile(source,file);
+      if(result.status===404 && target.project.spaFallback && !path.posix.extname(file))result=await fetchGitHubStaticFile(source,'index.html');
+      response.setHeader('X-Content-Type-Options','nosniff');
+      response.setHeader('Referrer-Policy','no-referrer');
+      response.setHeader('Cache-Control','no-store');
+      response.setHeader('X-DeployHub-Deployment',target.deployment.id);
+      // A site can register a worker only within its own independent runtime origin.
+      response.setHeader('Content-Type',result.contentType);
+      if(result.status===404)return void response.status(404).type('text').send('Page not found');
+      response.setHeader('Content-Length',result.body.length);
+      if(request.method==='HEAD')return void response.status(200).end();
+      return void response.status(200).end(result.body);
     }
     let decoded: string;
     try { decoded=decodeURIComponent(request.path); } catch { return void response.sendStatus(400); }

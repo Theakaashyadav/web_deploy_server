@@ -5,13 +5,14 @@ import http from 'node:http';
 import { spawn } from 'node:child_process';
 import { StringDecoder } from 'node:string_decoder';
 import { db } from '../../database/src/index.js';
-import { config, previewUrl, productionUrl } from '../../shared/src/config.js';
+import { config, previewUrl, productionUrl, runtimePreviewUrl } from '../../shared/src/config.js';
 import { extractZip, inventory, safePath } from '../../storage/src/safe-files.js';
 import { preparePublishedHtml, selectWebsiteLayout, validateStaticWebsite } from '../../storage/src/website-layout.js';
 import { detectFramework, presets, type Framework } from '../../framework-adapters/src/index.js';
 import { projectSecrets } from '../../shared/src/secrets.js';
 import { getInstallationId, probeWorkerCapabilities } from '../../shared/src/capabilities.js';
 import { buildAndStartRuntime, stopRuntime, type RuntimeMetadata } from '../../runtime-adapters/src/index.js';
+import { resolveGitHubStaticSource } from '../../shared/src/github-static.js';
 
 export const terminalStates = new Set(['live','failed','cancelled','archived']);
 const secretsByDeployment=new Map<string,string[]>();
@@ -87,7 +88,7 @@ async function buildInDocker(id: string, source: string, rootRelative: string, o
 }
 
 export async function verifyArtifact(project: {slug: string}, deployment: {id:string}) {
-  const origin = new URL(previewUrl(project,deployment));
+  const origin = new URL(runtimePreviewUrl(project,deployment));
   const redirectStatuses=new Set([301,302,303,307,308]);
   let target=new URL(origin);
   for(let redirects=0;redirects<=5;redirects++){
@@ -132,6 +133,28 @@ export async function executeDeployment(id: string) {
   let activated=false;
   try {
     const deployment = await db.deployment.findUniqueOrThrow({ where:{id},include:{project:true} });
+    if(deployment.source==='github'){
+      await stage(id,'validating','Resolving the public GitHub branch and checking ready static HTML and assets.');
+      const github=await resolveGitHubStaticSource(JSON.parse(deployment.configuration).github);
+      await db.deployment.update({where:{id},data:{configuration:JSON.stringify({github}),framework:'static'}});
+      await log(id,`Pinned ${github.repository} at ${github.commit}; static directory ${github.directory}. Website files remain on GitHub.`);
+      const sha256=crypto.createHash('sha256').update(JSON.stringify(github)).digest('hex');
+      await db.deploymentArtifact.upsert({where:{deploymentId:id},create:{deploymentId:id,path:'',kind:'github-static',sizeBytes:0n,sha256},update:{path:'',kind:'github-static',sizeBytes:0n,sha256}});
+      await stage(id,'verifying','Checking the pinned GitHub site through the independent website runtime.');
+      await verifyArtifact(deployment.project,deployment);
+      await db.$transaction(async transaction=>{
+        const latest=await transaction.deployment.findUniqueOrThrow({where:{id}});
+        const project=await transaction.project.findUniqueOrThrow({where:{id:deployment.projectId}});
+        if(latest.status==='cancelled')throw new Error('Deployment cancelled');
+        if(project.status!=='active')throw new Error('Project is disabled or archived');
+        await transaction.deployment.update({where:{id},data:{status:'live',durationMs:Date.now()-start,error:null}});
+        if(deployment.environment==='production')await transaction.project.update({where:{id:project.id},data:{currentDeploymentId:id}});
+      });
+      activated=true;
+      await log(id,deployment.environment==='production'?'Health check passed. Production now uses the checked GitHub commit.':'Health check passed. GitHub preview is ready; production was preserved.');
+      return;
+    }
+    if(config.deploymentMode!=='legacy')throw new Error('Uploaded source deployments are disabled. Connect a public GitHub static repository instead.');
     await fs.rm(workspace,{recursive:true,force:true});
     const source = path.join(workspace,'source');
     await fs.mkdir(source,{recursive:true});

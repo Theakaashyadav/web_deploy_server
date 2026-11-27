@@ -1,28 +1,28 @@
 # DeployHub
 
-A self-hosted website deployment platform with a Next.js dashboard, Express API, Prisma database, persistent worker, independent website runtime, CLI, and local MCP bridge.
+DeployHub connects **public GitHub repositories containing ready static websites** to a versioned deployment dashboard. Paste a repository link, select its branch and publish directory, and deploy a checked version.
 
-The public homepage introduces **Websynk Technologies** and its website, app, marketing, SEO, branding and ecommerce services. WhatsApp enquiries open the owner's business chat. The top-right admin icon opens the DeployHub workspace at `/admin`; `/login` redirects there.
+- DeployHub saves repository settings, a pinned commit and logs. It does **not** clone repositories or keep website files in uploads, workspaces or artifact storage.
+- Files are fetched from GitHub at that immutable commit when visitors request them. New commits appear only after a new deployment.
+- Each project address, such as `/admin/projectname`, opens an isolated viewer. The actual website runs on a separate configured hosting origin, keeping project JavaScript apart from administrator cookies and pages.
+- Previews leave production unchanged. Publication, promotion and rollback require explicit production authorization. A failed check preserves the working production version.
 
-**Static deployment is locally tested. Isolated Node.js/server application adapters are implemented, but their Docker builds have not been verified on this Windows host. This is not an audited public multi-tenant hosting product.** See [feature status and limitations](docs/STATUS.md) before production use.
+The publish directory must contain a usable `index.html` and browser-ready assets. Plain HTML/CSS/JavaScript works directly. For React, Vite, Vue, Astro or another generator, build in your own GitHub workflow and commit the static output, then select that output directory. Server applications, source JSX/TypeScript entries, build commands and file uploads are disabled in the default GitHub-static mode. GitHub OAuth, private repositories and automatic push/webhook deployment are not implemented.
 
-## Separate projects
+GitHub remains the content source: its availability and request limits affect serving. This mode is not an offline mirror or a CDN. Keep your repository and deployed commits accessible; rollback requires the selected commit to remain available.
 
-DeployHub lives in `C:\Users\Theakaashyadav\Desktop\hosting`. The Avynex website lives in `C:\Users\Theakaashyadav\Desktop\Avynex`. Each project has its own source, package manifest, environment configuration, database and development process. Run DeployHub commands from the `hosting` folder.
+## Local setup
+
+DeployHub lives in `C:\Users\Theakaashyadav\Desktop\hosting`. Avynex is a separate project at `C:\Users\Theakaashyadav\Desktop\Avynex`; its source, secrets, data and port `3000` are independent.
 
 | Local service | Address |
 | --- | --- |
-| Avynex website | `http://localhost:3000` |
-| Websynk Technologies website | `http://localhost:3100` |
+| Public Websynk website | `http://localhost:3100` |
 | DeployHub dashboard | `http://localhost:3100/admin` |
 | DeployHub API | `http://localhost:4100` |
-| DeployHub hosted websites | `http://<project-slug>.localhost:4101` |
+| Separate website runtime | `http://<project-slug>.localhost:4101` |
 
-DeployHub uses these dedicated local ports so both projects can run together. Docker services keep their separate internal ports (`3000`, `4000`, `4001`); the Docker network is independent of the local development addresses above.
-
-## Start locally
-
-Requirements: Node.js 22.18 or newer and npm. A working Linux Docker engine is required for framework source builds and server-rendered applications. SQLite makes static development possible without Docker or a database server. Docker Desktop and a usable WSL installation were not available on the checked development computer; see [runtime setup](docs/RUNTIMES.md) before retrying a server application.
+Requirements: Node.js 22.18 or newer and npm. GitHub-static hosting needs outbound HTTPS access to GitHub; Docker is not needed to build or execute website content.
 
 ```powershell
 npm ci
@@ -32,30 +32,22 @@ npm run build -w @deployhub/mcp-server
 npm run dev
 ```
 
-Open **http://localhost:3100/admin** and create the first administrator. There are no default credentials. Keep the dashboard origin as `http://localhost:3100` without a path; cookie writes validate the Origin header. API: `http://localhost:4100`; hosted websites: `http://<project-slug>.localhost:4101`. Preview hosts include the deployment ID. Some OS tools do not resolve `.localhost` automatically; browsers generally do. For HTTP testing, connect to `127.0.0.1:4101` and set the `Host` header.
+Create the first administrator at `http://localhost:3100/admin`. There are no default credentials. Keep `DASHBOARD_ORIGIN` as an origin without a path. The local runner refuses occupied DeployHub ports and starts independent dashboard, API, worker and gateway processes. All services must share the same database and absolute `DATA_DIR`.
 
-`npm run setup` creates `.env` only if absent, generates the SQLite Prisma client and applies the development schema. Production uses the separate PostgreSQL schema and committed migration. SQLite paths are relative to `packages/database/prisma`; all services must share the same `DATABASE_URL` and absolute `DATA_DIR`.
+## Deploy from GitHub
 
-The local runner starts four separate processes. Stopping the dashboard or API alone leaves the website runtime serving published artifacts. `Ctrl+C` stops the entire local stack. Keep the runner terminal open while using the platform.
+Create a project in the dashboard, connect a public repository and select **Preview**. When its checks pass, review the returned preview. Publish only with explicit production authorization. Website navigation runs inside the isolated viewer; the parent project address remains the viewer entry.
 
-## Deploy a website
-
-Create a project, upload a ZIP or folder, and choose preview or explicitly authorize production. The worker scans nested folders to find the website or a ready `public`, `dist`, `build`, or `out` folder, preserves its asset structure, validates the entry HTML, creates an immutable artifact and checks it through the runtime before returning `live`. Wrapper folders and accompanying README files do not require rearranging your source. If the upload contains several independent websites, select the intended Root/Output directory. Updating a production project keeps its URL. Rollback reuses an existing verified artifact.
-
-Server-rendered Next.js and supported Node applications follow a separate container path. The dashboard reports actual worker readiness from recent Docker checks; it does not claim a source deployment is available when Docker is absent or disabled. Failed uploads retain their source, so **Retry as preview** can create another version without uploading again after the worker is ready. Runtime previews keep separate secrets/storage and cannot be promoted by switching a pointer: create an explicitly authorized production retry instead. Static previews retain one-click promotion.
-
-Applications must listen on the supplied `PORT=3000` and an external container interface. Prisma SQLite applications can use a private application-data volume when no database URL was supplied. External databases, payments, mail and other integrations still need their own configuration and approved network access; DeployHub never borrows another project's credentials or data.
+The CLI supports the same workflow:
 
 ```powershell
-npm install --global ./apps/cli
 deployhub login --url http://localhost:4100
-cd path/to/your/website
-deployhub init
-deployhub deploy --preview
-deployhub deploy --prod
+deployhub deploy --project my-website --repository https://github.com/OWNER/REPOSITORY --directory docs --preview
+# After explicit production authorization:
+deployhub deploy --project my-website --repository https://github.com/OWNER/REPOSITORY --directory docs --prod
 ```
 
-Create a scoped API key in the dashboard for CLI login. Prefer `DEPLOYHUB_TOKEN` from your secret manager, particularly on shared Windows machines. `--prod` explicitly authorizes a production change. ZIP packaging always excludes common secrets, dependencies and local credentials. Review packaged source when using custom credential filenames.
+A branch can be selected with `--branch`; omit it for the repository default. Create a scoped API key in the dashboard for CLI login. Prefer secret-manager injection with `DEPLOYHUB_TOKEN`, and never commit keys.
 
 ## Verify
 
@@ -66,44 +58,12 @@ npm run test:integration
 npm run build
 ```
 
-The integration suite creates isolated test metadata and starts actual API, worker and runtime processes. It deploys sample HTML, exercises CLI uploads, updates, rollback, independent projects, authorization, domain rejection, restart persistence and a local database snapshot restore. It does not certify the VPS Docker, ACME or PostgreSQL restore paths.
+GitHub integration tests use controlled upstream responses with real local API, worker and gateway processes. They do not create a public deployment or certify live GitHub availability. Legacy integration cases explicitly enable legacy mode.
 
-The optional Docker integration fixture is explicitly skipped without `RUN_RUNTIME_DOCKER_TESTS=1` and a working Linux Docker backend. It creates uniquely labelled disposable resources to check a Node server and private SQLite-volume recovery:
+## Existing deployments and infrastructure
 
-```powershell
-$env:RUN_RUNTIME_DOCKER_TESTS = '1'
-node --import tsx --test tests/integration/runtime-docker.test.ts
-```
+`DEPLOYMENT_MODE=github-static` is the default. Existing files and application volumes are retained. Operators who deliberately need the previous upload/build API can set `DEPLOYMENT_MODE=legacy`; its Docker prerequisites, retained-file storage and network boundaries still apply. Do not remove legacy data merely because new GitHub deployments need no website storage.
 
-Proxy tests exercise real local HTTP servers, not a successful Docker/Next.js application build. No actual server-rendered user website was deployed on this host during these checks.
+The full platform still needs its API, database, worker and separate website gateway. A successful dashboard-only build on managed hosting does not supply those services. Public use additionally needs DNS and HTTPS routing for the administrator and separate hosting domains. See the [VPS guide](docs/VPS.md) and [Hostinger settings](docs/HOSTINGER.md). No production deployment is implied by these instructions.
 
-## Linux VPS
-
-Use a dedicated Ubuntu VPS with Docker support, at least 2 CPUs / 4 GiB RAM, and separate administrator and hosting domains. Copy the source to `/opt/deployhub`, review the installer, then run:
-
-```bash
-cd /opt/deployhub
-sudo bash infrastructure/scripts/install.sh --approve-server-changes --enable-private-source-builds
-```
-
-This command explicitly authorizes installing Docker if missing, starting the new stack, and enabling dependency downloads and runtime network access for your own trusted source projects. The installer does not rewrite an existing `.env` or change firewall rules. Read [the VPS guide](docs/VPS.md) before running on an existing server. Production Docker, DNS and certificates require external infrastructure and were not validated on the Windows development host.
-
-## Hostinger dashboard hosting
-
-For a dashboard build from the repository root, set Hostinger's output directory to **`apps/dashboard/.next`**. The root `.next` directory is not generated. Save the updated settings before redeploying. See [the exact Hostinger settings](docs/HOSTINGER.md).
-
-Managed web hosting can publish the dashboard; the full API, worker, gateway, databases and Docker application runtimes need a separate Docker-capable VPS. A successful dashboard build alone does not enable website deployment.
-
-## Documentation
-
-- [Architecture and deployment lifecycle](docs/ARCHITECTURE.md)
-- [Administrator manual](docs/ADMIN.md)
-- [VPS installation, DNS, updates, backup and disaster recovery](docs/VPS.md)
-- [Hostinger dashboard build settings and output-path troubleshooting](docs/HOSTINGER.md)
-- [Source builds, server runtimes and worker setup](docs/RUNTIMES.md)
-- [CLI, API and Codex MCP integration](docs/integrations.md)
-- [OpenAPI specification](docs/openapi.json)
-- [Security model and operational limits](docs/SECURITY.md)
-- [Feature status and verification results](docs/STATUS.md)
-
-Framework detection distinguishes static HTML, Vite/React/Vue builds, Angular, Astro, SvelteKit, Next.js exports and supported server modes. Node/Next/Nuxt and compatible Node adapters use isolated Docker runtimes; unsupported provider-specific adapters fail clearly. PHP, Python, Ruby and arbitrary uploaded Dockerfiles require additional adapters. Ready static output remains the verified path available without Docker.
+Further documentation: [administrator manual](docs/ADMIN.md), [architecture](docs/ARCHITECTURE.md), [security boundaries](docs/SECURITY.md), [feature status](docs/STATUS.md), [CLI/API/MCP](docs/integrations.md), [legacy runtimes](docs/RUNTIMES.md), and [API specification](docs/openapi.json).

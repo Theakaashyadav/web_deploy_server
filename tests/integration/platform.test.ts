@@ -19,7 +19,7 @@ test('real deployment platform: authentication, isolation, versions, CLI, recove
   const dashboardDirectory = path.join(directory,'dashboard');
   const url = `http://127.0.0.1:${apiPort}`;
   const databaseUrl = `file:../../../data/integration-${tag}/database.db`;
-  const env = { ...process.env, NODE_ENV: 'test', DATABASE_URL: databaseUrl, DATA_DIR: directory,
+  const env = { ...process.env, NODE_ENV: 'test', DEPLOYMENT_MODE: 'legacy', DATABASE_URL: databaseUrl, DATA_DIR: directory,
     API_PORT: String(apiPort), RUNTIME_PORT: String(runtimePort), SITE_DOMAIN: 'localhost',
     SITE_PROTOCOL: 'http', SITE_PORT: String(runtimePort), BUILD_DOCKER_ENABLED: 'false',
     REDIS_URL: '', SETUP_TOKEN: '', ENCRYPTION_KEY: 'ab'.repeat(32), DASHBOARD_ORIGIN: `http://127.0.0.1:${dashboardPort}`,

@@ -2,6 +2,16 @@
 
 DeployHub is intended for a private administrator deploying their own trusted projects. It has not received an independent security audit. Container isolation alone is insufficient for hostile public tenants; require separate VMs or a hardened sandbox such as microVMs, plus network policy, quotas, abuse controls and an external review before allowing untrusted signups.
 
+## Default GitHub-static workflow
+
+The default `DEPLOYMENT_MODE=github-static` accepts public GitHub repositories containing browser-ready static output. It resolves a branch to a pinned commit, validates the entry and serves bounded upstream responses from fixed HTTPS GitHub hosts. It does not clone, extract, install dependencies, run a build or retain website files on disk. Metadata and logs are still retained in the platform database. GitHub availability and request limits remain serving dependencies.
+
+Repository identifiers, directory names and request paths are validated. Traversal, dotfiles, credentials/configuration paths, unsupported source files and redirects are rejected. Requests to GitHub carry no administrator cookies, API bearer credentials or project secrets. Private repositories, arbitrary upstream hosts and GitHub tokens are not supported by this workflow.
+
+`/admin/<project>` is a viewer page containing a sandboxed website from a separate configured hosting origin. The public resolver exposes only active, successful deployment routing metadata. Hosted scripts run in the website frame, apart from the administrator document and session. Keep the actual hosting origin separate from `DASHBOARD_ORIGIN`; a shared viewer prefix does not authorize serving repository JavaScript as administrator code. Navigation occurs within the frame. Production configuration still needs public DNS and HTTPS for that separate origin.
+
+Upload/build endpoints are disabled by default. The remaining sections document shared authentication controls and the retained legacy paths, which are enabled deliberately with `DEPLOYMENT_MODE=legacy`. Existing persistent files and application volumes are not deleted when changing mode.
+
 ## Implemented controls
 
 - bcrypt password hashes; random sessions and API tokens stored as SHA-256 hashes; HttpOnly, SameSite=Strict cookies and Secure cookies in production.

@@ -1,6 +1,8 @@
 import path from 'node:path';
 import { dataDirectory } from '../../database/src/index.js';
 export const config = {
+  deploymentMode: process.env.DEPLOYMENT_MODE === 'legacy' ? 'legacy' : 'github-static',
+  sitePathPrefix: '/admin',
   dataDirectory,
   uploads: path.join(dataDirectory, 'uploads'),
   workspaces: path.join(dataDirectory, 'workspaces'),
@@ -20,8 +22,10 @@ export const config = {
 export function siteUrl(slug: string) {
   return `${config.siteProtocol}://${slug}.${config.siteDomain}${config.sitePort && !['80','443'].includes(config.sitePort) ? ':' + config.sitePort : ''}`;
 }
-export const productionUrl = (project: { slug: string }) => siteUrl(project.slug);
-export const previewUrl = (project: { slug: string }, deployment: { id: string }) => siteUrl(`${project.slug}--${deployment.id}`);
+export const runtimeProductionUrl = (project: { slug: string }) => siteUrl(project.slug);
+export const runtimePreviewUrl = (project: { slug: string }, deployment: { id: string }) => siteUrl(`${project.slug}--${deployment.id}`);
+export const productionUrl = (project: { slug: string }) => config.deploymentMode === 'legacy' ? runtimeProductionUrl(project) : `${new URL(config.dashboardOrigin).origin}${config.sitePathPrefix}/${encodeURIComponent(project.slug)}`;
+export const previewUrl = (project: { slug: string }, deployment: { id: string }) => config.deploymentMode === 'legacy' ? runtimePreviewUrl(project,deployment) : `${productionUrl(project)}?deployment=${encodeURIComponent(deployment.id)}`;
 export function slugify(name: string) {
   const slug = name.toLowerCase().normalize('NFKD').replace(/[^a-z0-9-]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 35).replace(/-$/,'');
   return slug || 'website';

@@ -92,3 +92,21 @@ test('log following drains every page even when deployment has already finished'
     assert.equal(messages.at(-1), 'last line');
   } finally { globalThis.fetch = original; }
 });
+
+test('GitHub deployment sends metadata with explicit production choice and waits for verification',async()=>{
+  const original=globalThis.fetch;
+  try{
+    const requests:{pathname:string;body?:Record<string,unknown>}[]=[];
+    globalThis.fetch=async(input,init)=>{
+      const pathname=new URL(String(input)).pathname;
+      const body=typeof init?.body==='string'?JSON.parse(init.body):undefined;
+      requests.push({pathname,body});
+      const payload=pathname.endsWith('/projects')?{projects:[{id:'prj',name:'Static',slug:'static'}]}:init?.method==='POST'?{id:'dpl',status:'queued'}:{id:'dpl',status:'live',environment:'production',productionUrl:'http://localhost:3100/admin/static'};
+      return Response.json(payload);
+    };
+    const result=await new DeployHubClient('http://localhost:4100','secret').deployGitHub('https://github.com/owner/site',{project:'static',directory:'docs',production:true});
+    assert.equal(result.status,'live');
+    assert.deepEqual(requests[1],{pathname:'/api/v1/projects/prj/github-deployments',body:{repository:'https://github.com/owner/site',directory:'docs',environment:'production',authorizeProduction:true}});
+    assert.equal(requests.some(request=>request.pathname.endsWith('/deployments')&&!request.pathname.includes('github')),false);
+  }finally{globalThis.fetch=original;}
+});

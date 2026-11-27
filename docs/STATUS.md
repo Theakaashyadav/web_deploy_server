@@ -1,58 +1,29 @@
-# Delivery status and verification
+# Feature status and verification
 
-Verified locally on Windows with Node.js 22.18 and Chrome on November 26, 2026. Static deployment, framework planning, worker readiness and real local HTTP proxy behavior have local checks. Isolated Node/server runtime adapters are implemented, but actual container builds and server applications were not verified because Docker and a usable WSL backend were absent. The full product brief remains broader than this implementation; the gaps below are explicit.
+DeployHub's default workflow is **public GitHub static sites**. The dashboard takes a repository link, branch and publish directory; a worker resolves a commit, checks ready HTML and verifies it through a separate website gateway. Deployment records retain metadata and logs while website files remain on GitHub.
 
-## Implemented
-
-| Area | Delivered behavior |
+| Area | Behavior |
 | --- | --- |
-| Public agency website | Websynk Technologies landing page with six service areas, responsive concept artwork, about/process/FAQ/contact sections and the owner's WhatsApp chat; top-right admin icon opens `/admin`, `/login` redirects there; public rendering does not depend on the deployment API |
-| Dashboard | Responsive Next.js application; first-admin setup/login; overview; project search/filter/sort/pagination; upload progress and cancellation; history/logs; confirmed promote/rollback/archive/disable/delete; themes; real metrics |
-| Authentication | bcrypt passwords; hashed persistent sessions; production setup token; cookie Origin checks; bearer keys with scope/project/expiry/revoke; operator password recovery; schema/middleware for roles and memberships |
-| Static deployment | ZIP, folder and individual-file uploads; extraction limits and path/symlink checks; framework detection; persistent queue; immutable artifacts; runtime health checks; stable production URL and independent previews; atomic version switching |
-| Framework builds | Static/runtime-aware plans, package-manager lockfile handling and preserved package build scripts; restricted Docker build invocation with limits, timeout, cancellation, secret injection and redacted logs; honest failure when prerequisites are unavailable |
-| Server runtimes | Docker image/container adapter for Next/Node/Nuxt and compatible Astro/SvelteKit/Angular Node modes; generated image recipes, private HTTP/WebSocket gateway, runtime health checks and retained image metadata; Docker execution still requires external verification |
-| Worker readiness and retry | Actual recent Linux-Docker/configuration reports, unavailable status for stale/missing reports, setup-guide download and new preview versions from retained source; production retry requires explicit authorization |
-| Developer tools | Installable CLI; preview default and explicit production flags; JSON output; secure ZIP packaging and ignore rules; actual deployment polling; local stdio MCP with12 tools and authorized roots; reusable config/instructions |
-| Domains and serving | TXT ownership verification; runtime host checks; Caddy permission endpoint and HTTPS configuration; caching/ETag/SPA fallback/custom404; API logs as JSON or SSE |
-| Project inspection | Immutable artifact download; production file listing/text preview; saved build settings; write-only AES-GCM encrypted environment values; activity and session APIs |
-| Infrastructure | PostgreSQL schema and migrations; Redis/BullMQ path; separate dashboard/API/worker/runtime containers; Caddy; persistent storage; guarded install/update/health/backup/restore scripts; installation-scoped quiesced runtime data-volume snapshots and fresh-volume restoration; cron example |
+| Public website | Websynk homepage, service/contact links and admin navigation |
+| Static deployments | Public GitHub URL, default or selected branch, committed publish directory, pinned commit and checks before live status |
+| Sharing | `/admin/<project-slug>` opens a sandboxed viewer served from a separate website origin |
+| Version control | Independent previews, authorized production publication/promotion/rollback and failed-update protection |
+| Storage | Platform metadata/logs only for GitHub-static; no clone or retained website files |
+| Developer tools | CLI GitHub deployment flags, REST endpoint and local MCP GitHub tool |
+| Compatibility | Retained legacy static/runtime serving; new uploads/builds require explicit `DEPLOYMENT_MODE=legacy` |
 
-## Executed checks
+## Verification boundaries
 
-| Check | Result and boundaries |
-| --- | --- |
-| `npm run setup` | Passed; local SQLite database and Prisma generation; Windows absent-file creation handled explicitly |
-| `npm run build` | Passed; CLI, MCP server and Next.js production build |
-| Clean production-mode source build | Passed in an isolated source-only checkout: `NODE_ENV=production` and `npm_config_omit=dev`, offline `npm ci --ignore-scripts`, required Node/React types and TypeScript/Tailwind present, then the full CLI/MCP/dashboard build. The repository's `include=dev` configuration preserves build tools; lifecycle scripts and Docker application execution are not certified by this check. |
-| `npm run typecheck` | Passed for API/core/worker and dashboard; CLI/MCP TypeScript compilation passes in build |
-| `npm test` |73 passing tests covering archive/upload security, nested layouts and assets, static/runtime framework plans, Prisma requirements, CLI/MCP behavior, private proxy headers/cookies/WebSockets, container command limits, readiness reports and retained-source policies; these do not certify Docker application execution |
-| `npm run test:integration` |14 passing child scenarios plus parent suite: authentication, independent sites/duplicate names, previews/updates/rollback, failed-update protection, scoped keys/domain rejection, CLI/folder/ZIP uploads, Chrome/dashboard upload above 10 MiB with nested assets, invalid metadata/path collisions, truthful worker readiness and retained-source retry, real local dynamic HTTP gateway redirects/POST with preview-production guards, queue/restart recovery, local restore and password recovery. This does not execute a Docker server application. |
-| Optional Docker runtime fixture |Explicitly skipped locally: `RUN_RUNTIME_DOCKER_TESTS=1` and an available Linux Docker engine are required. The fixture is intended to verify a real Node container and private SQLite volume across container recreation; no such execution is claimed here. |
-| Python runtime-volume safety tests |13 passing tests covering archive traversal/link/device/mode/budget rejection, exact ownership labels, foreign-writer refusal, restart after export failure, existing-volume protection and restricted helper-container command arguments. Python compilation and backup/restore Bash syntax checks also pass. These tests do not execute Docker volume export or restoration. |
-| Chrome browser QA | Passed public agency services, supplied WhatsApp destination, no public API calls, admin/login and return navigation, desktop1440/tablet768/mobile390 layouts and menu controls; isolated real API login/folder upload/live preview checks also pass. A separate production-build browser run verifies HTML/CSS/JS and navigation with only admin-initialization responses mocked; it does not certify the production backend. Screenshots are in `tests/artifacts`. |
-| Dependency audit |`npm audit` and the production-only audit report 0 vulnerabilities after patched direct dependencies and explicit transitive overrides |
-| Shell parsing |All5 shell scripts pass Bash syntax checks; this is not runtime verification of VPS actions |
+Run `npm run typecheck`, `npm test`, `npm run test:integration` and `npm run build` after relevant changes. GitHub tests use controlled upstream responses; integration exercises real local API, worker and gateway processes with disposable metadata. They do not publish a GitHub repository, create public DNS or issue certificates. Legacy integration explicitly enables legacy mode.
 
-The unit test for public HTTPS verification uses a controlled fetch result; there was no real certificate issuance. Local website assertions connect to the actual runtime and set the Host header. No public website URL was created. Browser QA uses a separate disposable database and preserves the user's regular database, projects and credentials.
+Actual Docker server builds, PostgreSQL/Redis production operation, public DNS/HTTPS routing, certificate issuance and VPS backup restoration require external verification. Existing container planning/proxy tests do not certify a user's server application deployment. A dashboard-only build on managed hosting still does not supply the full platform.
 
-Project separation was checked in Chrome while Avynex remained running: Avynex at `http://127.0.0.1:3000/en`, DeployHub at `http://localhost:3100`, and the DeployHub API at `http://localhost:4100`. Their source and data directories are independent. The local launcher anchors its working directory to DeployHub and refuses occupied ports before starting services.
+No public deployment URL should be reported unless the deployment was actually checked. Previews at `.localhost` are local to the development computer.
 
-The folder-upload regression additionally ran with `DEPLOYHUB_BROWSER_TEST=1`: Chrome selected a real folder containing a README, several nested directories, a `public/index.html`, linked CSS/JavaScript and a 12 MiB asset. The upload crossed a separate Next.js dashboard proxy, became live, and the rendered website loaded its stylesheet and script. A disposable account/database/dashboard copy was used; the user's project and credentials were preserved. The server log confirmed the original 500 came from Next's former 10 MiB body-buffer limit; it now follows the configured upload budget with bounded multipart overhead.
+## Limits
 
-## External verification required
+Only ready public static repository content is supported by default. This workflow does not run JSX/TypeScript sources, SSR, API endpoints, dependency installation, uploaded Dockerfiles or arbitrary build commands. Build outside DeployHub and commit static output before deploying.
 
-The supplied Hostinger SSH account was inspected on November 26, 2026. It is managed web hosting with no accessible Docker daemon or administrator tools; the user confirmed there is no separate VPS. Its failed deployment log identifies a Turbopack CSS-worker startup failure. The dashboard build now forces production mode and uses webpack; the local production build succeeds even with an invalid incoming `NODE_ENV`. A separate temporary checkout on the hosting account failed to spawn a webpack build worker with `EAGAIN`. A second diagnostic using one worker, worker threads and same-process webpack still failed to spawn TypeScript's configuration checker; TypeScript validation was not disabled. These diagnostics do not establish which hosting resource limit was reached. The hosting configuration also retained development/localhost values, and the requested public domain did not resolve from either the server or the development PC. This build correction does not supply the API, worker, gateway or Docker runtime infrastructure on managed hosting. A suitable server and production DNS configuration are still required; no successful remote platform deployment is claimed.
+GitHub OAuth/private repositories, push webhooks/automatic deployment, an offline mirror and a persistent CDN cache are not implemented. GitHub availability and request limits affect serving. Each deployment pins one commit; upstream deletion or unavailability can break serving or rollback.
 
-- Docker image builds and container resource enforcement on a Linux daemon; dependency installation inside the build network; actual React/Vite compilation and Next/Node/Nuxt SSR startup. The adapter code, runtime plans and gateway are implemented, but no user's server-rendered website was deployed on this development host. The optional Docker integration fixture is explicitly skipped without its enable flag and an available Linux backend.
-- PostgreSQL migrations and database access in Compose, Redis/BullMQ operation and interrupted Docker-worker recovery on a VPS.
-- Public DNS, live domain ownership, external HTTPS health verification and ACME certificates. Unknown/unverified domain rejection was tested.
-- Actual PostgreSQL/artifact/runtime-volume backup and disaster-recovery rehearsal. The supplied backup helper quiesces owned runtime writers, snapshots private application volumes and restores only fresh destinations; retained runtime images are also required. Its safety logic has Python tests, but actual Docker tar export/extraction, uid ownership and service recovery still require Linux VPS verification. The local restore test copies SQLite metadata over retained immutable static artifacts; it does not exercise `pg_restore` or real runtime-volume recovery.
-
-## Not implemented
-
-PHP/Python/Ruby and arbitrary uploaded Dockerfile adapters; unsupported provider-specific/serverless runtimes; GitHub OAuth/import/webhooks/PR previews; S3 storage; resumable uploads; preview passwords; QR sharing; project duplication; artifact retention cleanup; editable draft file manager; runtime image file-browsing/static-ZIP download UI; per-file image preview/download UI; team invitation/user/role management UI; TOTP two-factor authentication; email password resets; automated alert delivery; bandwidth/container/certificate-expiry telemetry; dashboard backup scheduling/retention or restore controls; wildcard DNS-provider certificate automation; primary-domain/www redirect management.
-
-Some models reserve space for future capabilities. Unsupported areas explain their status rather than returning simulated successes. Runtime previews have separate settings/storage and cannot be activated as production by pointer switching; create an authorized production retry. Applications with databases, email, payments or other external services still need their own credentials, initialization and network access. Operator shell backup/recovery includes private files, explicit restore approval and installation-scoped runtime data-volume snapshots. Off-server encryption, retention, external database backups and a successful Linux recovery rehearsal remain operator responsibilities.
-
-The build output bind mount has a soft monitored disk bound, not a hard filesystem quota. The worker's Docker socket is a privileged trust boundary. Default network isolation prevents downloading dependencies; allowing egress requires deliberate operator configuration. See [security boundaries](SECURITY.md). Do not expose this installation as a public multi-tenant hosting service without stronger isolation and an independent security review.
+Other pending features include preview passwords, team invitation controls, two-factor authentication, email password resets, automated alerts and retention cleanup. Legacy container hosting retains its Docker/socket/network/backup requirements. See [security boundaries](SECURITY.md) and [runtime setup](RUNTIMES.md).

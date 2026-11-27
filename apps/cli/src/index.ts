@@ -87,20 +87,29 @@ program.command('init').description('Create deployhub.json in the current direct
     print({ success: true, config });
   });
 
-program.command('deploy').description('Package and deploy a website; preview is the default.')
+program.command('deploy').description('Connect a GitHub static website; preview is the default.')
   .option('--prod', 'Explicitly authorize a production deployment')
   .option('--preview', 'Create an immutable preview deployment')
   .option('--project <name>', 'Project ID, name, or slug')
   .option('--dir <directory>', 'Directory to package', '.')
+  .option('--repository <url>', 'Public GitHub repository containing ready static website files')
+  .option('--branch <name>', 'GitHub branch (defaults to the repository default branch)')
+  .option('--directory <path>', 'Static directory inside the GitHub repository', '.')
   .action(async options => {
     if (options.prod && options.preview) throw new Error('Choose either --prod or --preview.');
     const directory = path.resolve(options.dir);
     const config = await readConfig(directory);
     const reference = options.project ?? config.project ?? path.basename(directory);
     const api = await client();
-    const deployment = await api.deployFolder(directory, { project: reference, production: options.prod === true, config, ...progress });
+    if(!options.repository){
+      const capabilities=await api.request<{deploymentMode?:string}>('/capabilities');
+      if(capabilities.deploymentMode==='github-static')throw new Error('Pass --repository https://github.com/owner/website. File uploads are disabled in GitHub static mode.');
+    }
+    const deployment = options.repository
+      ? await api.deployGitHub(options.repository,{project:options.project??new URL(options.repository).pathname.split('/').filter(Boolean).at(-1)!.replace(/\.git$/,''),branch:options.branch,directory:options.directory,production:options.prod===true,...progress})
+      : await api.deployFolder(directory, { project: reference, production: options.prod === true, config, ...progress });
     const result = { success: true, project: deployment.project?.slug ?? reference, deploymentId: deployment.id,
-      status: deployment.status, environment: deployment.environment,
+      status: deployment.status, environment: deployment.environment, source:deployment.source,
       productionUrl: deployment.productionUrl, previewUrl: deployment.previewUrl,
       url: deployment.environment === 'production' ? deployment.productionUrl : deployment.previewUrl };
     if (isJson()) print(result);

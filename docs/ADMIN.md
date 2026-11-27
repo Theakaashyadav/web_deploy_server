@@ -1,37 +1,37 @@
 # Administrator manual
 
-## First login
+Open `/admin` from the Websynk homepage's admin icon. `/login` redirects there. Create the first administrator with a name, email and password of at least 12 characters; production also requires the private setup token. There are no default credentials.
 
-Open `/admin` on the configured dashboard domain, or use the admin icon on the public Websynk Technologies homepage. `/login` redirects to `/admin`. The agency homepage and WhatsApp contact links do not require a connection to the deployment API; administrator authentication still does.
+## Connect a static website
 
-Local setup accepts a new administrator name, email and a password of at least 12 characters. Production additionally requires the private `SETUP_TOKEN` generated in `.env`. The first-admin flow closes after creation. No credentials are hardcoded. Keep the dashboard reachable only to trusted operators.
+1. Create a project with a descriptive name. Its permanent slug determines `/admin/<slug>`; duplicate names receive a suffix.
+2. Paste a public GitHub repository URL in the deployment dialog.
+3. Leave branch blank for the repository default, or specify a branch. Select the publish directory: `.` for repository-root HTML, `docs` or `dist` for output committed there.
+4. Create a preview and check its logs. The worker resolves a commit, checks browser-ready `index.html` and validates the candidate through the website gateway.
+5. Explicitly authorize production when ready, or promote the checked preview using the production confirmation.
 
-For a lost password, an authorized server operator can run `docker compose exec api node --import tsx infrastructure/scripts/reset-password.ts YOUR_EMAIL --confirm-reset`. This replaces that account's password, revokes all its sessions and API keys, and displays a new random password once. Run it only in a private terminal and store the result securely. Email-based recovery is not implemented.
+GitHub-static deployments save metadata and logs, not website files. Assets are requested from the pinned GitHub commit when visitors open the site. Pushing another commit does not update an existing deployment: create a new version. Source-only React/Vite/Next repositories need their own external static build workflow and committed output. DeployHub does not install dependencies, build source or run an application server in this workflow.
 
-## New projects and versions
+The shared project address opens an isolated viewer. Website navigation takes place inside it on a separate hosting origin. This keeps project scripts separate from the administrator session while preserving `/admin/projectname` as the public entry.
 
-Create a project with a name and build settings. The server derives a DNS-safe permanent slug; duplicate names receive a suffix. Upload a ZIP, individual files, or a folder with relative paths. Files may be nested inside several wrapper folders. The worker scans for website entry HTML, framework package roots and existing publish output while preserving asset paths. The upload progress bar measures browser transfer; deployment stages and logs come from the server.
+## Versions and project settings
 
-Folder selection and folder drag-and-drop exclude dependency/cache directories and common local credential files. The dialog shows skipped items and retains the remaining selected files for retry. Do not rename or flatten your website before uploading. If several independent websites are found, use the upload dialog's optional Root directory / Output directory fields to select one; their paths are relative to the original upload. Uploaded framework source still requires the isolated Docker build worker unless a ready build output is present.
+Preview leaves the current production pointer unchanged. Publishing, promotion and rollback require explicit production authorization. A failed deployment retains useful error logs and does not replace the working production version. Rollback still needs the pinned commit available on GitHub; no local mirror is kept.
 
-Uploads use the configured `MAX_UPLOAD_BYTES` and `MAX_FILES` limits; the default file payload limit is 100 MiB. Dashboard proxy buffering includes an additional bounded allowance for multipart headers and path metadata, so folders over 10 MiB can reach the API intact. If these limits change in production, rebuild the dashboard image as well as updating the API configuration. Malformed paths, conflicting names and incomplete uploads return actionable errors; temporary files from rejected requests are cleaned up.
+Enable SPA fallback only for a ready client-side application that should serve `index.html` on extensionless routes. Missing assets should remain missing rather than return application HTML.
 
-Choose preview for review. Production upload and promotion require explicit authorization. Successful artifacts contain a nonempty `index.html`; missing output or unavailable Docker builds fail visibly. The previously published version remains active. Framework detection is available when the project framework is `auto`; manual build/output configuration overrides defaults.
+Disable or archive a project to stop serving it while retaining history. Restore it in settings. Deletion requires confirmation; cancel active work before deleting. Existing legacy files/volumes are not automatically removed when selecting GitHub-static mode.
 
-Open a deployment to inspect stored logs. Polling updates its current state; the logs endpoint also supports SSE. Download retained successful artifacts from the deployment API. Roll back to a successful deployment to restore it without rebuilding.
+## API keys and accounts
 
-Disable or archive a project to stop serving it while retaining versions. Restore/enable it through project settings. Deletion requires confirmation and removes project metadata and its retained files. Cancel active work before deleting a project.
+Create named keys with read, deploy and/or manage scopes. Restrict keys to a project and give them an expiration when appropriate. The full key appears only on creation; the server saves its hash. Revocation applies to subsequent requests.
 
-## API keys
+For a lost password, an authorized server operator can run `docker compose exec api node --import tsx infrastructure/scripts/reset-password.ts YOUR_EMAIL --confirm-reset`. This replaces the password and revokes that account's sessions and API keys. Keep the generated password private. Email-based account recovery is not implemented.
 
-Create a named key with read, deploy and/or manage scopes. Optionally restrict it to one project and give it an expiration. The full key is displayed only on creation; the server stores its hash. Copy it to a secret manager. Revocation takes effect on the next request. A project-scoped key cannot access another project or create global resources.
+## Domains and operations
 
-## Custom domains
+The platform needs a dashboard origin, API, worker, database and separate website origin. The latter needs its own public DNS/HTTPS routing; the viewer does not remove that requirement. Custom domains still require the returned ownership TXT record and successful verification. A verification record alone does not prove certificate issuance.
 
-Add a hostname to a project. Publish the exact `_deployhub.<hostname>` TXT record returned by the API and point the hostname at the server. Verification must pass before the runtime accepts it. Production Caddy issues a certificate only when its permission endpoint approves the hostname. The dashboard reports `awaiting_proxy` after verification; it does not claim a certificate was issued. DNS and certificate validation require real domains.
+Monitoring reports actual service measurements and leaves unavailable metrics empty. GitHub-static deployments have no local website artifact to browse or download. Update their repository and deploy another version. Legacy file browsing and ZIP downloads apply only to retained static artifacts in legacy mode.
 
-## Files and server health
-
-The file manager lists published production artifact files and previews regular text files up to 1 MiB. Artifacts are immutable. To edit, download/change the website locally and upload a new version. Draft editing is not implemented.
-
-Monitoring shows actual CPU samples, memory, disk, uptime and queue depth. In Docker, OS readings have a documented host/container scope. Container counts, bandwidth and certificate expiry are unavailable; no simulated values are substituted. Backups and updates are administrator shell workflows described in the VPS guide.
+GitHub connectivity and rate limits affect the service. Private repositories, OAuth and automatic push deployments are not supported. Keep deployed commits accessible and monitor upstream failures.

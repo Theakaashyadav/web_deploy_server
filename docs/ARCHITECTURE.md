@@ -2,29 +2,25 @@
 
 ```text
 Browser -> Next.js dashboard -> Express authentication + REST API -> Prisma
-CLI / local MCP bridge -------> Bearer-authenticated API           -> PostgreSQL
-API stores upload + queued deployment row                          -> Redis/BullMQ
-Worker -> safe extraction -> framework preset -> restricted Docker build
-       -> immutable static artifact OR isolated runtime image/container
-       -> gateway/public health checks -> atomic production pointer
-Internet -> Caddy HTTPS -> independent website gateway -> retained static files
-                                                    -> private runtime containers
+CLI / local MCP bridge -------> Bearer-authenticated API          -> database
+API -> queued deployment metadata -> worker resolves GitHub commit
+    -> validates static entry -> gateway health check -> production pointer
+/admin/<project> -> sandboxed viewer -> separate website gateway origin
+                                    -> GitHub files at pinned commit, no disk copy
 ```
 
-Local development substitutes SQLite for PostgreSQL and a database-backed polling queue for Redis. Both queues keep deployment metadata durable; the worker conditionally claims queued records to prevent duplicate execution. Production BullMQ adds bounded concurrency. Interrupted jobs become eligible for recovery after their build lease expires, with orphan build containers removed by their generated deployment name. Recovery is delayed by the build timeout plus two minutes.
+The default deployment mode is `github-static`. A deployment stores repository settings, a pinned commit, lifecycle state and ordered logs. Its artifact has `kind: github-static`, an empty local path and metadata integrity information. No clone, extraction, dependency installation, website build or local static copy occurs on this path. Responses exist transiently in bounded memory; GitHub remains the source for subsequent requests.
 
-Each project owns deployments, domains, encrypted variables and project memberships. Each deployment owns ordered log events and an artifact with checksum and byte count. Artifacts have a `kind` of `static` or `runtime`; runtime metadata identifies the immutable image, managed container and private endpoint. The production pointer changes in a database transaction only after the candidate passes gateway checks. Public production configuration also verifies the preview through HTTPS and checks its deployment identity. Same-origin redirects are followed within a bounded redirect limit; cross-origin redirects fail verification.
+The selected branch is resolved only when deploying. It does not track moving branch contents during serving. The worker validates ready HTML and verifies the candidate through the gateway before marking it live. Production changes through an atomic metadata pointer only after checks pass. Previews leave that pointer unchanged. Explicitly authorized promotion and rollback recheck the selected deployment before activation; its commit must remain available upstream.
 
-Previews leave production unchanged. Static promotion/rollback reuses retained files. Runtime previews use preview settings and isolated storage, so they cannot become production through pointer switching. An authorized production retry rebuilds retained source with production configuration; older successful production runtime artifacts can be reactivated only when their image and persistent data remain compatible. The retry API copies retained upload source into a new deployment and preserves deployment-specific overrides.
+The public project resolver returns only an active, successful deployment's separate website URL and deployment identifier. `/admin/<slug>` creates an isolated viewer using that URL. The actual website has its own origin, so root-relative assets and SPA routes work without rewriting repository files. The parent project URL is an entry/viewer address; navigation within the website occurs inside the embedded site.
 
-Runtime lookup joins the hostname to an active project or verified custom domain. It resolves the production pointer per request and either serves static files or proxies HTTP/WebSocket traffic to a validated private runtime endpoint. This lets the API, dashboard and worker restart independently. The gateway receives no Docker socket. It still depends on metadata and retained storage; container runtimes also need a healthy Docker daemon and application storage.
+The gateway accepts active project subdomains or verified custom domains and resolves the production pointer per request. GitHub requests use fixed HTTPS GitHub hosts, validated repository identifiers, a pinned commit and safe publish/file paths. Hidden files, traversal, credentials/configuration files and unsupported source extensions are rejected. Static responses have bounded upstream time and size. Administrator sessions and bearer tokens are not forwarded to GitHub.
 
-Build source is never executed on the management host. Ready static websites skip install/build. Framework sources use non-root restricted Docker builders. Supported server projects produce an immutable image from a trusted generated recipe, rather than executing an uploaded Dockerfile. The worker starts a non-root runtime with a read-only root filesystem, resource limits, bounded writable cache/tmp locations and no Docker socket. Managed-container ownership labels and an installation identifier prevent attaching another installation's named resources.
+SQLite and database polling support local development; production can use PostgreSQL and Redis/BullMQ. The worker claims queued records conditionally to prevent duplicate execution. API, dashboard, worker and gateway restart independently, but serving still depends on metadata availability and GitHub connectivity. There is no persisted website cache or automatic deployment webhook.
 
-The worker publishes its actual Docker/build/runtime capability report. The API considers it stale after 45 seconds and never reports a missing worker as ready. The dashboard exposes this report and a setup guide before users retry retained source. Framework detection reads configuration as text, preserves package build scripts and lockfile modes, and distinguishes SSR adapters from complete static output. It does not evaluate uploaded configuration on the host.
+## Compatibility
 
-Artifacts and uploads live under `DATA_DIR`, including retained runtime image archives and metadata. PostgreSQL/Redis use Docker volumes; Caddy owns separate certificate/configuration volumes. Automatically configured SQLite applications use separate managed Docker volumes: previews are isolated by deployment, while production data belongs to the project. Fresh SQLite storage is initialized inside the container; testing a candidate does not automatically migrate an existing production database. The static filesystem backup script does not capture these runtime data volumes; they require a quiesced runtime-aware backup/restore procedure. S3 and public multi-tenant isolation remain extension work. See the security guide for network and disk boundaries.
+`DEPLOYMENT_MODE=legacy` deliberately enables the previous upload/build API. Existing deployments remain retained and can continue serving; changing the mode does not remove their files or volumes. Legacy static artifacts live under `DATA_DIR`, and server applications use isolated Docker images/containers plus separately managed application volumes. Those paths retain the build/socket/network/backup constraints described in the [runtime](RUNTIMES.md) and [security](SECURITY.md) guides.
 
-Docker adapters and proxy logic are implemented, but actual Linux image builds, SSR application startup, daemon restart recovery and runtime-volume restoration need external verification. The development host had no Docker/usable WSL backend; local HTTP proxy tests are not evidence that the user's Next.js application was deployed.
-
-The database schema contains reserved models for later Git integration, backups and metric history. Their presence does not imply that those products are implemented. Live monitoring is sampled from the service operating system and filesystem; unavailable measurements are returned as null.
+The database, PostgreSQL/Redis/Caddy volumes and deployment logs are platform storage. The promise of no stored website files applies to new GitHub-static deployments, not platform metadata or retained legacy projects.

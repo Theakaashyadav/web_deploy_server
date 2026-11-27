@@ -27,7 +27,7 @@ test('local MCP stdio advertises all tools, authenticates API calls and refuses 
   try {
     await client.connect(transport);
     const listed = await client.listTools();
-    assert.deepEqual(listed.tools.map(tool => tool.name).sort(), ['create_project', 'list_projects', 'deploy_website', 'deploy_local_folder', 'get_deployment_status', 'get_deployment_logs', 'get_website_url', 'update_website', 'promote_deployment', 'rollback_deployment', 'connect_custom_domain', 'get_server_status'].sort());
+    assert.deepEqual(listed.tools.map(tool => tool.name).sort(), ['create_project', 'list_projects', 'deploy_github_site', 'deploy_website', 'deploy_local_folder', 'get_deployment_status', 'get_deployment_logs', 'get_website_url', 'update_website', 'promote_deployment', 'rollback_deployment', 'connect_custom_domain', 'get_server_status'].sort());
     const result = await client.callTool({ name: 'list_projects', arguments: {} });
     assert.equal(result.isError, undefined);
     assert.equal((result.content as { text: string }[])[0].text.includes('prj_local'), true);
@@ -36,6 +36,9 @@ test('local MCP stdio advertises all tools, authenticates API calls and refuses 
     } });
     assert.equal(denied.isError, true);
     assert.match((denied.content as { text: string }[])[0].text, /explicit user authorization/);
+    const githubDenied=await client.callTool({name:'deploy_github_site',arguments:{project:'local',repository:'https://github.com/owner/website',production:true,authorizeProduction:false}});
+    assert.equal(githubDenied.isError,true);
+    assert.match((githubDenied.content as {text:string}[])[0].text,/explicit user authorization/);
     assert.deepEqual(received, ['/api/v1/projects']);
   } finally {
     await client.close();

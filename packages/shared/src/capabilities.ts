@@ -2,6 +2,7 @@ import { spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
 import { randomBytes } from 'node:crypto';
 import { db } from '../../database/src/index.js';
+import { config } from './config.js';
 
 export type WorkerCapabilities = {
   checkedAt: string;
@@ -52,7 +53,7 @@ export async function probeWorkerCapabilities(): Promise<WorkerCapabilities> {
 }
 
 export async function publishWorkerCapabilities() {
-  const capabilities=await probeWorkerCapabilities();
+  const capabilities=config.deploymentMode==='legacy' ? await probeWorkerCapabilities() : {checkedAt:new Date().toISOString(),dockerInstalled:false,dockerAvailable:false,sourceBuildsAvailable:false,dynamicRuntimeAvailable:false,dependencyNetworkEnabled:false,supportedRuntimeFrameworks:[],reason:'GitHub static mode fetches ready website files without local builds or containers.'};
   await db.applicationSetting.upsert({where:{key:'worker:capabilities'},create:{key:'worker:capabilities',value:JSON.stringify(capabilities)},update:{value:JSON.stringify(capabilities)}});
   return capabilities;
 }

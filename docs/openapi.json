@@ -3,7 +3,7 @@
   "info": {
     "title": "DeployHub REST API",
     "version": "0.1.0",
-    "description": "Self-hosted website deployment management. All endpoints except setup and login require a scoped bearer API key or HttpOnly session cookie. Session writes require the configured dashboard Origin. Bearer requests do not need Origin; a supplied Origin must match. API rate limit is 300 requests/minute, authentication 20 requests/15 minutes. API fields are actual implementation; unsupported optional features are not advertised."
+    "description": "GitHub-static deployment is the default: public repositories, pinned commits, checked static output and metadata-only persistence. All endpoints require a scoped bearer key or HttpOnly session except first-admin/login/setup and the public website resolver. Session writes require the configured dashboard Origin. Production changes require explicit authorizeProduction: true. Upload/build APIs are opt-in legacy compatibility. API rate limit is 300 requests/minute; authentication is 20 requests/15 minutes."
   },
   "servers": [
     {
@@ -272,7 +272,7 @@
           "productionUrl": {
             "type": "string",
             "format": "uri",
-            "description": "Generated permanent URL. Only live when currentDeploymentId references an active verified artifact and project is active."
+            "description": "Stable /admin/project-slug viewer URL in GitHub-static mode; independent runtime URL in legacy mode. Active content requires a live checked deployment."
           },
           "deployments": {
             "type": "array",
@@ -331,7 +331,7 @@
           },
           "source": {
             "type": "string",
-            "description": "Upload source label; deployments copied from retained source use retry."
+            "description": "github for metadata-only public GitHub static deployments; upload/retry labels describe legacy retained source."
           },
           "framework": {
             "type": "string",
@@ -354,7 +354,8 @@
             "type": "integer"
           },
           "uploadPath": {
-            "type": "string"
+            "type": "string",
+            "description": "Empty for GitHub-static: website files are not persisted."
           },
           "error": {
             "type": [
@@ -399,7 +400,7 @@
           },
           "configuration": {
             "type": "string",
-            "description": "Serialized deployment-specific build-setting overrides retained for retry."
+            "description": "Serialized {github: GitHubStaticSource} with a pinned commit after successful resolution; legacy deployments retain build-setting overrides."
           }
         },
         "required": [
@@ -420,10 +421,12 @@
             "type": "string"
           },
           "path": {
-            "type": "string"
+            "type": "string",
+            "description": "Empty for GitHub-static; legacy artifacts refer to retained local storage."
           },
           "sizeBytes": {
-            "type": "integer"
+            "type": "integer",
+            "description": "Zero for GitHub-static because no website files are persisted."
           },
           "sha256": {
             "type": "string"
@@ -435,11 +438,12 @@
           "kind": {
             "type": "string",
             "enum": [
+              "github-static",
               "static",
               "runtime"
             ],
             "default": "static",
-            "description": "Static directory or immutable application-container image."
+            "description": "github-static stores routing/integrity metadata with no local website path; static/runtime are retained legacy artifacts."
           },
           "runtimeImage": {
             "type": [
@@ -648,8 +652,7 @@
         "properties": {
           "staticUploadsAvailable": {
             "type": "boolean",
-            "const": true,
-            "description": "Static/prebuilt upload acceptance remains available; a worker must still process the job."
+            "description": "False in default GitHub-static mode. Upload acceptance requires legacy mode and worker processing."
           },
           "workerOnline": {
             "type": "boolean"
@@ -694,6 +697,18 @@
             "items": {
               "type": "string"
             }
+          },
+          "deploymentMode": {
+            "type": "string",
+            "enum": [
+              "github-static",
+              "legacy"
+            ],
+            "description": "Default github-static; legacy explicitly restores upload/build APIs."
+          },
+          "githubStaticAvailable": {
+            "type": "boolean",
+            "description": "Recent worker availability for GitHub static verification. This does not guarantee upstream GitHub access or a particular deployment."
           }
         },
         "required": [
@@ -725,6 +740,93 @@
           }
         },
         "additionalProperties": false
+      },
+      "GitHubDeploymentInput": {
+        "type": "object",
+        "required": [
+          "repository"
+        ],
+        "properties": {
+          "repository": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 300,
+            "description": "Public https://github.com/owner/repository URL. No private repositories, credentials, query string or tree/blob paths."
+          },
+          "branch": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "Branch or commit; omitted/empty selects the repository default branch."
+          },
+          "directory": {
+            "type": "string",
+            "maxLength": 300,
+            "default": ".",
+            "description": "Safe repository-relative directory containing browser-ready index.html and assets."
+          },
+          "environment": {
+            "type": "string",
+            "enum": [
+              "preview",
+              "production"
+            ],
+            "default": "preview"
+          },
+          "authorizeProduction": {
+            "type": "boolean",
+            "description": "Must be true for production changes, after explicit user authorization."
+          }
+        }
+      },
+      "GitHubStaticSource": {
+        "type": "object",
+        "required": [
+          "repository",
+          "owner",
+          "repo",
+          "branch",
+          "commit",
+          "directory"
+        ],
+        "properties": {
+          "repository": {
+            "type": "string",
+            "format": "uri"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "repo": {
+            "type": "string"
+          },
+          "branch": {
+            "type": "string"
+          },
+          "commit": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{40}$"
+          },
+          "directory": {
+            "type": "string"
+          }
+        }
+      },
+      "PublicSite": {
+        "type": "object",
+        "required": [
+          "url",
+          "deploymentId"
+        ],
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Independent hosting origin used inside the sandboxed /admin/project viewer."
+          },
+          "deploymentId": {
+            "type": "string"
+          }
+        }
       }
     }
   },
@@ -1725,7 +1827,7 @@
       ],
       "post": {
         "summary": "Validate and queue a ZIP or multiple uploaded files",
-        "description": "Requires deploy scope. Defaults to preview. Production requires authorizeProduction=true. Upload success does not mean the website is live; poll GET deployments/{id}. Files are limited by configured MAX_UPLOAD_BYTES, MAX_FILES and archive expansion protections. In archive mode supply exactly one ZIP. In folder mode supply repeated files fields and a paths JSON array in matching order. Optional build settings are snapshotted for this deployment and override project defaults. Ready static output can publish without a build; source/server applications require a capable Linux Docker worker. Inspect GET /capabilities and configure external service credentials before retrying source deployments. Server support does not cover every runtime or provider-specific adapter.",
+        "description": "Legacy compatibility only: requires DEPLOYMENT_MODE=legacy. Default GitHub-static mode rejects uploads with 410 before reading multipart data; use github-deployments instead. Requires deploy scope. Defaults to preview. Production requires authorizeProduction=true. Upload success does not mean the website is live; poll GET deployments/{id}. Files are limited by configured MAX_UPLOAD_BYTES, MAX_FILES and archive expansion protections. In archive mode supply exactly one ZIP. In folder mode supply repeated files fields and a paths JSON array in matching order. Optional build settings are snapshotted for this deployment and override project defaults. Ready static output can publish without a build; source/server applications require a capable Linux Docker worker. Inspect GET /capabilities and configure external service credentials before retrying source deployments. Server support does not cover every runtime or provider-specific adapter.",
         "parameters": [
           {
             "name": "Idempotency-Key",
@@ -1870,6 +1972,16 @@
           },
           "409": {
             "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Uploads disabled in default GitHub-static mode; connect a public repository.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4481,8 +4593,8 @@
     },
     "/capabilities": {
       "get": {
-        "summary": "Read isolated-build and runtime readiness",
-        "description": "Requires read scope. Missing, malformed or stale worker reports are unavailable. Docker/configuration readiness does not certify a specific source application.",
+        "summary": "Read deployment mode and worker readiness",
+        "description": "Requires read scope. GitHub-static mode reports uploads/builds/server runtimes unavailable. Missing, malformed or stale worker reports are unavailable. Readiness does not certify a particular deployment.",
         "responses": {
           "200": {
             "description": "Current worker capabilities",
@@ -4687,6 +4799,172 @@
                     "environment": "production",
                     "authorizeProduction": true
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/projects/{id}/github-deployments": {
+      "post": {
+        "summary": "Queue a checked public GitHub static deployment",
+        "description": "Requires deploy scope for this active project. The worker resolves the selected branch to an immutable commit, checks ready index.html/direct assets and verifies the website through its independent runtime before live status. No clone, upload, build, website artifact file or GitHub credential is retained. Preview is default and leaves production unchanged. GitHub remains an upstream serving dependency. A new branch commit requires a new deployment.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GitHubDeploymentInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "GitHub deployment queued; not live until worker verification passes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Deployment"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid repository, branch, directory or missing production authorization.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Deploy scope or project membership required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project unavailable or outside scope.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Project is disabled or archived.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/public/sites/{slug}": {
+      "get": {
+        "summary": "Resolve an active checked website for the isolated viewer",
+        "security": [],
+        "description": "Public routing metadata only. Returns no repository contents, secrets or administrator data. The project must be active and the selected production/preview deployment live. The URL must use an origin independent of the dashboard. Responses are no-store.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "deployment",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Checked preview deployment belonging to this project. Omit for its production pointer."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Independent website URL and live deployment identity.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicSite"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No active checked deployment or project mismatch.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Website hosting origin is not isolated from the dashboard.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
