@@ -35,7 +35,7 @@ child.once('close', (code, signal) => {
   process.removeListener('SIGINT', onInterrupt);
   process.removeListener('SIGTERM', onTerminate);
   if (!spawnFailed && code === 0) {
-    const outputDirectory = relative(repositoryDirectory, resolve(dashboardDirectory, process.env.DEPLOYHUB_NEXT_DIST_DIR || '.next')).split(sep).join('/');
+    const outputDirectory = relative(repositoryDirectory, resolve(dashboardDirectory, process.env.WEBSYNK_NEXT_DIST_DIR || '.next')).split(sep).join('/');
     console.log(`Dashboard build output from repository root: ${outputDirectory}`);
     console.log('For Hostinger with root directory ".", save this path as the Output directory before redeploying.');
   }

@@ -1,0 +1,619 @@
+{
+  "environment": "local production build",
+  "date": "2026-11-27",
+  "paths": [
+    {
+      "path": "/",
+      "status": 200,
+      "title": "Web Development &amp; Digital Marketing in Greater Noida | Websynk",
+      "description": "Looking for the best website development and digital marketing agency in Greater Noida? Websynk offers web design, SEO, Meta Ads and digital growth solutions.",
+      "canonical": "https://websynk.in/",
+      "h1": 1,
+      "structuredDataBlocks": 2
+    },
+    {
+      "path": "/website-development-greater-noida/",
+      "status": 200,
+      "title": "Website Development Services in Greater Noida | Websynk",
+      "description": "Plan a responsive business website with Websynk. Explore website scope, design, development, technical SEO and launch preparation for Greater Noida businesses.",
+      "canonical": "https://websynk.in/website-development-greater-noida/",
+      "h1": 1,
+      "structuredDataBlocks": 2
+    },
+    {
+      "path": "/digital-marketing-greater-noida/",
+      "status": 200,
+      "title": "Digital Marketing Solutions in Greater Noida | Websynk",
+      "description": "Explore digital marketing planning for Greater Noida businesses: audience research, SEO, paid campaign requirements, content and meaningful enquiry measurement.",
+      "canonical": "https://websynk.in/digital-marketing-greater-noida/",
+      "h1": 1,
+      "structuredDataBlocks": 2
+    },
+    {
+      "path": "/seo-services-greater-noida/",
+      "status": 200,
+      "title": "SEO Services &amp; Local Search Planning in Greater Noida | Websynk",
+      "description": "Understand Websynk’s SEO approach: technical review, useful service content, accurate local information and measurable improvements for Greater Noida businesses.",
+      "canonical": "https://websynk.in/seo-services-greater-noida/",
+      "h1": 1,
+      "structuredDataBlocks": 2
+    },
+    {
+      "path": "/meta-ads-agency-greater-noida/",
+      "status": 200,
+      "title": "Meta Ads Management in Greater Noida | Websynk",
+      "description": "Plan Facebook and Instagram advertising with Websynk. Discuss Meta campaign setup, audience targeting, creative, lead journeys, optimisation and reporting.",
+      "canonical": "https://websynk.in/meta-ads-agency-greater-noida/",
+      "h1": 1,
+      "structuredDataBlocks": 2
+    },
+    {
+      "path": "/google-ads-agency-greater-noida/",
+      "status": 200,
+      "title": "Google Ads Management in Greater Noida | Websynk",
+      "description": "Discuss Google Ads campaigns with Websynk: search intent, keyword planning, campaign setup, relevant landing pages, budget responsibilities and performance reporting.",
+      "canonical": "https://websynk.in/google-ads-agency-greater-noida/",
+      "h1": 1,
+      "structuredDataBlocks": 2
+    },
+    {
+      "path": "/ecommerce-website-development/",
+      "status": 200,
+      "title": "E-commerce Website Development in Noida | Websynk",
+      "description": "Plan an online store with Websynk: product information, navigation, mobile shopping, checkout requirements and launch preparation for your e-commerce business.",
+      "canonical": "https://websynk.in/ecommerce-website-development/",
+      "h1": 1,
+      "structuredDataBlocks": 2
+    },
+    {
+      "path": "/app-development/",
+      "status": 200,
+      "title": "App Development &amp; Mobile Product Planning | Websynk",
+      "description": "Turn a product idea into a clear mobile app brief. Discuss Android, iOS, user journeys, integrations, testing and launch responsibilities with Websynk Technologies.",
+      "canonical": "https://websynk.in/app-development/",
+      "h1": 1,
+      "structuredDataBlocks": 2
+    },
+    {
+      "path": "/about-us/",
+      "status": 200,
+      "title": "About Websynk Technologies | Digital Solutions in Noida",
+      "description": "Meet Websynk Technologies, a Noida-based digital solutions company connecting website development, apps, design, SEO and digital marketing around business goals.",
+      "canonical": "https://websynk.in/about-us/",
+      "h1": 1,
+      "structuredDataBlocks": 2
+    },
+    {
+      "path": "/contact-us/",
+      "status": 200,
+      "title": "Contact Websynk Technologies | Sector 142, Noida",
+      "description": "Discuss your website, app or digital marketing project with Websynk Technologies. Call +91 91150 82252 or find our office in Sector 142, Noida.",
+      "canonical": "https://websynk.in/contact-us/",
+      "h1": 1,
+      "structuredDataBlocks": 2
+    },
+    {
+      "path": "/privacy-policy/",
+      "status": 200,
+      "title": "Privacy &amp; Website Enquiries | Websynk Technologies",
+      "description": "How the Websynk website handles enquiry forms, WhatsApp and phone links, external maps and optional analytics configuration.",
+      "canonical": "https://websynk.in/privacy-policy/",
+      "h1": 1,
+      "structuredDataBlocks": 2
+    },
+    {
+      "path": "/terms-and-conditions/",
+      "status": 200,
+      "title": "Website Information &amp; Project Enquiries | Websynk",
+      "description": "Understand the scope of Websynk website information, initial consultations and project proposals before starting a website or digital marketing enquiry.",
+      "canonical": "https://websynk.in/terms-and-conditions/",
+      "h1": 1,
+      "structuredDataBlocks": 2
+    },
+    {
+      "path": "/blog/",
+      "status": 200,
+      "title": "Website &amp; Digital Marketing Guides | Websynk Insights",
+      "description": "Practical guides to planning a business website, comparing agency proposals and choosing between SEO and paid advertising. Read Websynk’s digital business insights.",
+      "canonical": "https://websynk.in/blog/",
+      "h1": 1,
+      "structuredDataBlocks": 2
+    },
+    {
+      "path": "/blog/choosing-a-website-development-company-greater-noida/",
+      "status": 200,
+      "title": "How to Choose a Website Development Company in Greater Noida | Websynk",
+      "description": "Compare website agencies using a clear brief, meaningful questions and written project scope. A practical selection guide for Greater Noida business owners.",
+      "canonical": "https://websynk.in/blog/choosing-a-website-development-company-greater-noida/",
+      "h1": 1,
+      "structuredDataBlocks": 2
+    },
+    {
+      "path": "/blog/website-development-cost-greater-noida/",
+      "status": 200,
+      "title": "Website Development Cost in Greater Noida: A Scope Guide | Websynk",
+      "description": "Understand the factors behind a website quotation: content, design, features, integrations and support. Prepare a better brief without relying on invented price ranges.",
+      "canonical": "https://websynk.in/blog/website-development-cost-greater-noida/",
+      "h1": 1,
+      "structuredDataBlocks": 2
+    },
+    {
+      "path": "/blog/seo-vs-google-ads-for-business/",
+      "status": 200,
+      "title": "SEO vs Google Ads: Which Fits Your Business Goal? | Websynk",
+      "description": "Understand the different roles of organic search and paid search. Compare intent, website readiness, measurement and realistic expectations before choosing a channel.",
+      "canonical": "https://websynk.in/blog/seo-vs-google-ads-for-business/",
+      "h1": 1,
+      "structuredDataBlocks": 2
+    }
+  ],
+  "externalValidators": "Not certified by local tests",
+  "sitemap": {
+    "count": 16,
+    "canonicalOnly": true
+  },
+  "robots": {
+    "status": 200,
+    "publicIndexing": true
+  },
+  "routes": {
+    "internalLinks": "pass",
+    "removedPlatformStatus": 404,
+    "wwwRedirect": 308,
+    "trailingSlashRedirect": 308
+  },
+  "browser": {
+    "widths": [
+      {
+        "width": 320,
+        "horizontalOverflow": false,
+        "h1Clipping": false,
+        "screenshot": "tests/artifacts/seo-home-320.png"
+      },
+      {
+        "width": 375,
+        "horizontalOverflow": false,
+        "h1Clipping": false,
+        "screenshot": "tests/artifacts/seo-home-375.png"
+      },
+      {
+        "width": 390,
+        "horizontalOverflow": false,
+        "h1Clipping": false,
+        "screenshot": "tests/artifacts/seo-home-390.png"
+      },
+      {
+        "width": 768,
+        "horizontalOverflow": false,
+        "h1Clipping": false,
+        "screenshot": "tests/artifacts/seo-home-768.png"
+      },
+      {
+        "width": 1024,
+        "horizontalOverflow": false,
+        "h1Clipping": false,
+        "screenshot": "tests/artifacts/seo-home-1024.png"
+      },
+      {
+        "width": 1440,
+        "horizontalOverflow": false,
+        "h1Clipping": false,
+        "screenshot": "tests/artifacts/seo-home-1440.png"
+      },
+      {
+        "width": 1920,
+        "horizontalOverflow": false,
+        "h1Clipping": false,
+        "screenshot": "tests/artifacts/seo-home-1920.png"
+      }
+    ],
+    "pageErrors": [],
+    "failedAssets": [],
+    "form": {
+      "invalidPhoneRejected": true,
+      "draftPrepared": true,
+      "externalMessageSent": false,
+      "staleDraftCleared": true,
+      "honeypotRejected": true,
+      "privacyConsentRequired": true
+    },
+    "javascriptDisabled": true,
+    "lab": {
+      "conditions": "Local production Next server; installed headless Chrome; no network/CPU throttling; browser diagnostics, not Lighthouse or field Core Web Vitals.",
+      "desktop": {
+        "lcp": 360,
+        "cls": 0,
+        "events": [
+          {
+            "name": "pointerdown",
+            "duration": 24
+          },
+          {
+            "name": "pointerup",
+            "duration": 24
+          },
+          {
+            "name": "click",
+            "duration": 24
+          }
+        ],
+        "longTasks": 0,
+        "navigation": {
+          "name": "http://127.0.0.1:60135/",
+          "entryType": "navigation",
+          "startTime": 0,
+          "duration": 186.7999999988824,
+          "navigationId": 6787,
+          "initiatorType": "navigation",
+          "deliveryType": "",
+          "nextHopProtocol": "http/1.1",
+          "renderBlockingStatus": "non-blocking",
+          "contentType": "text/html",
+          "contentEncoding": "gzip",
+          "workerStart": 0,
+          "workerRouterEvaluationStart": 0,
+          "workerCacheLookupStart": 0,
+          "workerMatchedRouterSource": "",
+          "workerFinalRouterSource": "",
+          "workerMatchedSourceType": "",
+          "workerFinalSourceType": "",
+          "redirectStart": 0,
+          "redirectEnd": 0,
+          "fetchStart": 0.6999999992549419,
+          "domainLookupStart": 0.6999999992549419,
+          "domainLookupEnd": 0.6999999992549419,
+          "connectStart": 0.6999999992549419,
+          "secureConnectionStart": 0,
+          "connectEnd": 0.6999999992549419,
+          "requestStart": 1.900000000372529,
+          "responseStart": 7.099999999627471,
+          "firstInterimResponseStart": 0,
+          "finalResponseHeadersStart": 7.099999999627471,
+          "responseEnd": 7.799999998882413,
+          "transferSize": 26785,
+          "encodedBodySize": 26485,
+          "decodedBodySize": 169392,
+          "responseStatus": 200,
+          "serverTiming": [],
+          "unloadEventStart": 0,
+          "unloadEventEnd": 0,
+          "domInteractive": 144.09999999962747,
+          "domContentLoadedEventStart": 144.09999999962747,
+          "domContentLoadedEventEnd": 144.09999999962747,
+          "domComplete": 186.59999999962747,
+          "loadEventStart": 186.7999999988824,
+          "loadEventEnd": 186.7999999988824,
+          "type": "navigate",
+          "redirectCount": 0,
+          "activationStart": 0,
+          "criticalCHRestart": 0,
+          "notRestoredReasons": null,
+          "confidence": {
+            "randomizedTriggerRate": 0.4994798,
+            "value": "low"
+          }
+        },
+        "resources": [
+          {
+            "name": "http://127.0.0.1:60135/_next/static/css/7d396c3d3476f3bd.css",
+            "transferSize": 792,
+            "decodedBodySize": 492
+          },
+          {
+            "name": "http://127.0.0.1:60135/_next/static/css/95ff32bda6d24630.css",
+            "transferSize": 11646,
+            "decodedBodySize": 61197
+          },
+          {
+            "name": "http://127.0.0.1:60135/_next/static/chunks/webpack-c167cc905490f838.js",
+            "transferSize": 2000,
+            "decodedBodySize": 3264
+          },
+          {
+            "name": "http://127.0.0.1:60135/_next/static/chunks/968-a683ccf36777317a.js",
+            "transferSize": 67466,
+            "decodedBodySize": 241455
+          },
+          {
+            "name": "http://127.0.0.1:60135/_next/static/chunks/87c73c54-ec65736bd5e5b6de.js",
+            "transferSize": 64357,
+            "decodedBodySize": 203720
+          },
+          {
+            "name": "http://127.0.0.1:60135/_next/static/chunks/main-app-ef25f4abf448f4d8.js",
+            "transferSize": 809,
+            "decodedBodySize": 509
+          },
+          {
+            "name": "http://127.0.0.1:60135/_next/static/chunks/app/not-found-a75c77cfa2eb7ee0.js",
+            "transferSize": 3629,
+            "decodedBodySize": 7815
+          },
+          {
+            "name": "http://127.0.0.1:60135/_next/static/chunks/app/page-609eda6166d9ecf9.js",
+            "transferSize": 5025,
+            "decodedBodySize": 13156
+          },
+          {
+            "name": "http://127.0.0.1:60135/icon.svg",
+            "transferSize": 490,
+            "decodedBodySize": 250
+          }
+        ]
+      },
+      "mobile": {
+        "lcp": 104,
+        "cls": 0,
+        "events": [],
+        "longTasks": 0,
+        "navigation": {
+          "name": "http://127.0.0.1:60135/",
+          "entryType": "navigation",
+          "startTime": 0,
+          "duration": 97,
+          "navigationId": 2184,
+          "initiatorType": "navigation",
+          "deliveryType": "cache",
+          "nextHopProtocol": "",
+          "renderBlockingStatus": "non-blocking",
+          "contentType": "text/html",
+          "contentEncoding": "gzip",
+          "workerStart": 0,
+          "workerRouterEvaluationStart": 0,
+          "workerCacheLookupStart": 0,
+          "workerMatchedRouterSource": "",
+          "workerFinalRouterSource": "",
+          "workerMatchedSourceType": "",
+          "workerFinalSourceType": "",
+          "redirectStart": 0,
+          "redirectEnd": 0,
+          "fetchStart": 0.900000000372529,
+          "domainLookupStart": 0.900000000372529,
+          "domainLookupEnd": 0.900000000372529,
+          "connectStart": 0.900000000372529,
+          "secureConnectionStart": 0,
+          "connectEnd": 0.900000000372529,
+          "requestStart": 2.799999998882413,
+          "responseStart": 9.699999999254942,
+          "firstInterimResponseStart": 0,
+          "finalResponseHeadersStart": 9.699999999254942,
+          "responseEnd": 11,
+          "transferSize": 300,
+          "encodedBodySize": 26485,
+          "decodedBodySize": 169392,
+          "responseStatus": 200,
+          "serverTiming": [],
+          "unloadEventStart": 15.5,
+          "unloadEventEnd": 15.5,
+          "domInteractive": 42,
+          "domContentLoadedEventStart": 42,
+          "domContentLoadedEventEnd": 42.09999999962747,
+          "domComplete": 96.90000000037253,
+          "loadEventStart": 97,
+          "loadEventEnd": 97,
+          "type": "navigate",
+          "redirectCount": 0,
+          "activationStart": 0,
+          "criticalCHRestart": 0,
+          "notRestoredReasons": null,
+          "confidence": {
+            "randomizedTriggerRate": 0.4994798,
+            "value": "high"
+          }
+        }
+      }
+    },
+    "publicPageResponsive": [
+      {
+        "path": "/website-development-greater-noida/",
+        "widths": [
+          320,
+          375,
+          390,
+          768,
+          1024,
+          1440,
+          1920
+        ],
+        "horizontalOverflow": false,
+        "h1Clipping": false
+      },
+      {
+        "path": "/digital-marketing-greater-noida/",
+        "widths": [
+          320,
+          375,
+          390,
+          768,
+          1024,
+          1440,
+          1920
+        ],
+        "horizontalOverflow": false,
+        "h1Clipping": false
+      },
+      {
+        "path": "/seo-services-greater-noida/",
+        "widths": [
+          320,
+          375,
+          390,
+          768,
+          1024,
+          1440,
+          1920
+        ],
+        "horizontalOverflow": false,
+        "h1Clipping": false
+      },
+      {
+        "path": "/meta-ads-agency-greater-noida/",
+        "widths": [
+          320,
+          375,
+          390,
+          768,
+          1024,
+          1440,
+          1920
+        ],
+        "horizontalOverflow": false,
+        "h1Clipping": false
+      },
+      {
+        "path": "/google-ads-agency-greater-noida/",
+        "widths": [
+          320,
+          375,
+          390,
+          768,
+          1024,
+          1440,
+          1920
+        ],
+        "horizontalOverflow": false,
+        "h1Clipping": false
+      },
+      {
+        "path": "/ecommerce-website-development/",
+        "widths": [
+          320,
+          375,
+          390,
+          768,
+          1024,
+          1440,
+          1920
+        ],
+        "horizontalOverflow": false,
+        "h1Clipping": false
+      },
+      {
+        "path": "/app-development/",
+        "widths": [
+          320,
+          375,
+          390,
+          768,
+          1024,
+          1440,
+          1920
+        ],
+        "horizontalOverflow": false,
+        "h1Clipping": false
+      },
+      {
+        "path": "/about-us/",
+        "widths": [
+          320,
+          375,
+          390,
+          768,
+          1024,
+          1440,
+          1920
+        ],
+        "horizontalOverflow": false,
+        "h1Clipping": false
+      },
+      {
+        "path": "/contact-us/",
+        "widths": [
+          320,
+          375,
+          390,
+          768,
+          1024,
+          1440,
+          1920
+        ],
+        "horizontalOverflow": false,
+        "h1Clipping": false
+      },
+      {
+        "path": "/privacy-policy/",
+        "widths": [
+          320,
+          375,
+          390,
+          768,
+          1024,
+          1440,
+          1920
+        ],
+        "horizontalOverflow": false,
+        "h1Clipping": false
+      },
+      {
+        "path": "/terms-and-conditions/",
+        "widths": [
+          320,
+          375,
+          390,
+          768,
+          1024,
+          1440,
+          1920
+        ],
+        "horizontalOverflow": false,
+        "h1Clipping": false
+      },
+      {
+        "path": "/blog/",
+        "widths": [
+          320,
+          375,
+          390,
+          768,
+          1024,
+          1440,
+          1920
+        ],
+        "horizontalOverflow": false,
+        "h1Clipping": false
+      },
+      {
+        "path": "/blog/choosing-a-website-development-company-greater-noida/",
+        "widths": [
+          320,
+          375,
+          390,
+          768,
+          1024,
+          1440,
+          1920
+        ],
+        "horizontalOverflow": false,
+        "h1Clipping": false
+      },
+      {
+        "path": "/blog/website-development-cost-greater-noida/",
+        "widths": [
+          320,
+          375,
+          390,
+          768,
+          1024,
+          1440,
+          1920
+        ],
+        "horizontalOverflow": false,
+        "h1Clipping": false
+      },
+      {
+        "path": "/blog/seo-vs-google-ads-for-business/",
+        "widths": [
+          320,
+          375,
+          390,
+          768,
+          1024,
+          1440,
+          1920
+        ],
+        "horizontalOverflow": false,
+        "h1Clipping": false
+      }
+    ]
+  }
+}

@@ -1,23 +1,24 @@
 import type { NextConfig } from 'next';
-const uploadBytes=Number(process.env.MAX_UPLOAD_BYTES || 104857600);
 const nextConfig: NextConfig = {
   agentRules: false,
-  distDir: process.env.DEPLOYHUB_NEXT_DIST_DIR || '.next',
+  distDir: process.env.WEBSYNK_NEXT_DIST_DIR || '.next',
   output: 'standalone',
-  experimental: {
-    // Folder uploads include a paths manifest and one multipart header for every file.
-    proxyClientMaxBodySize: (Number.isSafeInteger(uploadBytes)&&uploadBytes>0 ? uploadBytes : 104857600)+32*1024*1024,
-    proxyTimeout: 600000,
+  trailingSlash: true,
+  async redirects() {
+    const preferredHost=[{type:'host' as const,value:'www.websynk.in'}];
+    return [
+      {source:'/:path*.:extension',has:preferredHost,destination:'https://websynk.in/:path*.:extension',permanent:true},
+      {source:'/:path*',has:preferredHost,destination:'https://websynk.in/:path*/',permanent:true},
+    ];
   },
-  async rewrites() {
-    return [{ source: '/api/:path*', destination: `${process.env.API_ORIGIN || 'http://127.0.0.1:4100'}/api/:path*` }];
-  },
+  poweredByHeader: false,
   async headers() {
     return [{ source: '/:path*', headers: [
       { key: 'X-Content-Type-Options', value: 'nosniff' },
       { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-      { key: 'X-Frame-Options', value: 'DENY' }
-    ] }];
+      { key: 'X-Frame-Options', value: 'DENY' },
+      { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' }
+    ] }, { source: '/:path(admin|login|api)/:rest*', headers: [{key:'X-Robots-Tag',value:'noindex, nofollow'}] }];
   }
 };
 export default nextConfig;

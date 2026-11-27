@@ -1,45 +1,30 @@
 {
-  "name": "deployhub",
+  "name": "websynk-website",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "workspaces": [
-    "apps/*",
-    "packages/*"
+    "apps/dashboard"
   ],
   "engines": {
     "node": ">=22.18.0"
   },
-  "overrides": {
-    "deepmerge-ts": "8.0.2",
-    "effect": "3.22.5",
-    "zod": "4.6.7",
-    "minimatch": "11.0.9"
-  },
   "scripts": {
-    "setup": "node scripts/setup.mjs",
     "dev": "node scripts/dev.mjs",
-    "dev:api": "npm run dev -w @deployhub/api",
-    "dev:dashboard": "npm run dev -w @deployhub/dashboard",
-    "build": "npm run build -w @deployhub/cli && npm run build -w @deployhub/mcp-server && npm run build -w @deployhub/dashboard",
+    "start": "node scripts/start.mjs",
+    "preview": "node scripts/dev.mjs --production",
+    "dev:website": "npm run dev -w @websynk/site",
+    "build": "npm run build -w @websynk/site",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "test": "node --import tsx --test tests/*.test.ts apps/cli/tests/*.test.ts apps/mcp-server/tests/*.test.ts",
+    "test": "node --import tsx --test tests/*.test.ts",
     "test:integration": "node --import tsx --test tests/integration/*.test.ts",
-    "db:generate": "npm run generate -w @deployhub/database",
-    "db:migrate": "npm run migrate:production -w @deployhub/database",
-    "package:vps": "node scripts/package-vps.mjs"
+    "test:browser": "node tests/e2e/landing-browser.mjs",
+    "seo:audit": "node scripts/seo-audit.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.58.2",
-    "@types/archiver": "8.0.0",
     "@types/node": "22.19.11",
-    "archiver": "8.0.0",
-    "dotenv": "17.2.3",
-    "minimatch": "11.0.9",
     "tsx": "4.23.15",
     "typescript": "5.9.3"
-  },
-  "dependencies": {
-    "bcryptjs": "3.0.2"
   }
 }

@@ -1,1 +1,0 @@
-{"name":"@deployhub/deployment-engine","version":"0.1.0","private":true,"type":"module","dependencies":{"@deployhub/database":"0.1.0","@deployhub/framework-adapters":"0.1.0","@deployhub/shared":"0.1.0","@deployhub/storage":"0.1.0","@deployhub/runtime-adapters":"0.1.0"}}

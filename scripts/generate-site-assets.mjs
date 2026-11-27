@@ -1,0 +1,14 @@
+import fs from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+import { ImageResponse } from 'next/og.js';
+import React from 'react';
+const repository=fileURLToPath(new URL('../',import.meta.url));
+const publicDirectory=path.join(repository,'apps/dashboard/public');
+await fs.mkdir(publicDirectory,{recursive:true});
+const element=React.createElement;
+const image=new ImageResponse(element('div',{style:{display:'flex',flexDirection:'column',justifyContent:'space-between',width:'100%',height:'100%',padding:'64px 74px',background:'#1a282b',color:'#faf9f5',fontFamily:'sans-serif'}},element('div',{style:{display:'flex',fontSize:36,fontWeight:700}},'Websynk Technologies'),element('div',{style:{display:'flex',flexDirection:'column',fontSize:67,fontWeight:700,letterSpacing:-2,lineHeight:1.12}},element('span',null,'Website development.'),element('span',{style:{color:'#d6e2bb'}},'Digital marketing.'),element('span',{style:{color:'#d6e2bb'}},'Real possibilities.')),element('div',{style:{display:'flex',justifyContent:'space-between',fontSize:22,color:'#c1cbc6'}},element('span',null,'Serving Greater Noida from Noida'),element('span',{style:{color:'#f95d35'}},'websynk.in'))),{width:1200,height:630});
+await fs.writeFile(path.join(publicDirectory,'opengraph-image.png'),Buffer.from(await image.arrayBuffer()));
+const icon=new ImageResponse(element('div',{style:{display:'flex',width:'100%',height:'100%',alignItems:'center',justifyContent:'center',background:'#f95d35',color:'#fff',fontSize:115,fontWeight:700,borderRadius:34}},'W'),{width:180,height:180});
+await fs.writeFile(path.join(publicDirectory,'apple-icon.png'),Buffer.from(await icon.arrayBuffer()));
+console.log('Generated branded social and apple icons from native vector/text artwork.');

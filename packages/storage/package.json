@@ -1,1 +1,0 @@
-{"name":"@deployhub/storage","version":"0.1.0","private":true,"type":"module","dependencies":{"@deployhub/framework-adapters":"0.1.0","@deployhub/shared":"0.1.0","yauzl":"3.4.0"},"devDependencies":{"@types/yauzl":"2.10.3"}}

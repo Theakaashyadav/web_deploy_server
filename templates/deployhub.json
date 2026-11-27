@@ -1,7 +1,0 @@
-{
-  "project": "my-website",
-  "framework": "auto",
-  "rootDirectory": ".",
-  "environment": "preview",
-  "autoDetect": true
-}

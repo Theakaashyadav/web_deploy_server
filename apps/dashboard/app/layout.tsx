@@ -1,14 +1,13 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
+import { businessSchema, websiteSchema, siteUrl, serializeSchema, homepageTitle, homepageDescription, pageMetadata } from '../lib/seo';
 import './base.css';
+
 export const metadata: Metadata = {
-  title: 'Websynk Technologies | Web, App & Digital Growth Agency in Noida',
-  description: 'Established in 2021, Websynk Technologies has delivered 2,000+ projects. Discover website and app development, branding, SEO and digital marketing from our Noida team.',
-  openGraph: {
-    title: 'Websynk Technologies | Your Digital Growth Partner Since 2021',
-    description: 'Your digital growth partner since 2021. More than 2,000 projects delivered across web development, apps, design and digital marketing. Based in Sector 142, Noida.',
-    type: 'website',
-  },
+  metadataBase:new URL(siteUrl),...pageMetadata({title:homepageTitle,description:homepageDescription,path:'/'}),
+  applicationName:'Websynk Technologies',icons:{icon:'/icon.svg',apple:'/apple-icon.png'},
+  ...(process.env.GOOGLE_SITE_VERIFICATION?{verification:{google:process.env.GOOGLE_SITE_VERIFICATION}}:{}),
 };
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body>{children}</body></html>;
+export const viewport: Viewport = {width:'device-width',initialScale:1,themeColor:'#1a282b'};
+export default function RootLayout({children}:Readonly<{children:React.ReactNode}>) {
+  return <html lang="en-IN"><body><script type="application/ld+json" dangerouslySetInnerHTML={{__html:serializeSchema({'@context':'https://schema.org','@graph':[businessSchema,websiteSchema]})}}/>{children}</body></html>;
 }

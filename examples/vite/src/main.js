@@ -1,1 +1,0 @@
-document.querySelector('#app').innerHTML='<main><h1>Vite build served by DeployHub</h1><p>This source fixture requires an isolated Docker worker with authorized dependency-network access.</p></main>';

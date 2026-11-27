@@ -1,13 +1,13 @@
-# DeployHub development
+# Websynk website development
 
-This repository is DeployHub at `C:\Users\Theakaashyadav\Desktop\hosting`. The Avynex website at `C:\Users\Theakaashyadav\Desktop\Avynex` is a separate project. Keep their source, environment files, credentials, databases and preview processes independent. Do not import, copy, publish or modify Avynex as part of DeployHub maintenance unless the user explicitly requests work on Avynex. Scope filesystem changes to this repository and derive script paths from this repository's location.
+This repository at `C:\Users\Theakaashyadav\Desktop\hosting` contains only the Websynk Technologies website. The former DeployHub platform is archived in local Git branch `backup/pre-standalone-seo-20261127`. Do not restore its administrator, API, database, worker or deployment services unless explicitly requested.
 
-Local DeployHub addresses are dashboard `http://localhost:3100`, API `http://localhost:4100`, and hosted websites on port `4101`. Avynex uses its own development server on port `3000`. Treat a port occupied by another project as a conflict; never reuse that process as DeployHub or stop it without authorization. Docker-internal service ports remain independent of these local development ports.
+The Avynex project at `C:\Users\Theakaashyadav\Desktop\Avynex` is independent. Do not read, copy, publish or modify its source, credentials, data or development process. Scope changes to this repository and derive script paths from its location.
 
-Build and verify the user's requested behavior. Run `npm run typecheck`, `npm test`, `npm run test:integration` and `npm run build` after relevant changes.
+Use port3100 for the Websynk local preview. Port3000 belongs to the separate project. Treat occupied ports as conflicts; never stop or reuse another project's process. Use an available alternative port for isolated automated tests.
 
-Static uploads must never execute source on the host. Build commands run only in restricted containers. Keep hosted website origins separate from the administrator origin. Preserve a working production deployment until its replacement has passed a health check. Never report `live` for a failed or unsupported build.
+Preserve the existing Websynk branding and functional telephone, WhatsApp and Maps links. The owner confirmed the2021 founding year,2,000+ projects delivered and advertised website/marketing services during the SEO implementation. Do not invent reviews, awards, clients, social profiles, business hours or marketing results. Physical office: Noida; GreaterNoida is a service area.
 
-Use `deployhub deploy --preview` for requested previews. Production deployment requires explicit authorization; `--prod` represents that authorization. Return only verified URLs. Never print credentials, store plaintext API keys on the server, or commit secrets. Do not change VPS firewall, remove persistent data, or restore backups without explicit approval.
+Run `npm run typecheck`, `npm test`, `npm run build` and `npm run test:integration` after relevant changes. Keep public content in server-rendered HTML with one clearH1 per page, consistent canonical metadata and only indexable public URLs in the sitemap. Enquiry completion must describe the real WhatsApp handoff rather than claiming backend delivery.
 
-The reusable instructions for websites deployed through DeployHub live in `templates/AGENTS.md`.
+Do not deploy to production or push changes that trigger production publishing without explicit authorization. Return only verified preview addresses. Never print or commit credentials. Do not remove historical persistent data or restore backups without explicit approval.

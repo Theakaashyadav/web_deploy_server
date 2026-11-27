@@ -1,1 +1,0 @@
-{"name":"@deployhub/worker","private":true,"version":"0.1.0","type":"module","scripts":{"dev":"tsx src/index.ts","runtime":"tsx src/runtime.ts"},"dependencies":{"@deployhub/database":"0.1.0","@deployhub/deployment-engine":"0.1.0","@deployhub/shared":"0.1.0","@deployhub/storage":"0.1.0","express":"4.22.3","bullmq":"5.63.2","ioredis":"5.8.2"}}
