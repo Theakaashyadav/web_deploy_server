@@ -24,6 +24,13 @@ test('standalone Websynk: production HTML, crawlability, routing, business data 
       assert.doesNotMatch(html,/<meta name="robots" content="[^"]*noindex/i,pathname+'no accidental noindex');
       assert.match(html,/property="og:image" content="https:\/\/websynk.in\/opengraph-image.png"/);
       assert.match(html,/name="twitter:card" content="summary_large_image"/);
+      const head=html.match(/<head>([\s\S]*?)<\/head>/)?.[1]||'';
+      const trackingScripts=[...head.matchAll(/<script\b[^>]*\bsrc="https:\/\/www\.googletagmanager\.com\/([^\"]+)"[^>]*>/g)];
+      assert.equal(trackingScripts.length,1,pathname+' one GTM installation');
+      assert.equal(trackingScripts[0][1],'gtm.js?id=GTM-P7S6T33L');
+      assert.match(trackingScripts[0][0],/\basync(?:="")?/);
+      assert.equal((head.match(/id="google-tag-manager-init"/g)||[]).length,1,pathname+' one data-layer initialization');
+      assert.match(head,/window\.dataLayer = window\.dataLayer \|\| \[\]/);
       const schemas=[...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map(match=>JSON.parse(match[1]));assert.ok(schemas.length>=2,pathname+'server schema');
       const serialized=JSON.stringify(schemas);assert.match(serialized,/#business/);assert.match(serialized,/#website/);assert.doesNotMatch(serialized,/aggregateRating|reviewRating|openingHours/);
       assert.match(html,/603, Advant Navis Business Park/);assert.match(html,/tel:\+919115082252/);

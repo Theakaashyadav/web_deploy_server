@@ -388,7 +388,7 @@ export const publicPages: PublicPage[] = [
   {
     slug: 'privacy-policy',
     title: 'Privacy & Website Enquiries | Websynk Technologies',
-    description: 'How the Websynk website handles enquiry forms, WhatsApp and phone links, external maps and optional analytics configuration.',
+    description: 'How the Websynk website handles enquiry forms, WhatsApp and phone links, external maps, Google Tag Manager and hosting.',
     heading: 'Privacy, explained in plain language.',
     eyebrow: 'WEBSITE PRIVACY',
     introduction: 'This notice describes the website features currently implemented by Websynk Technologies. It explains what happens when you read the site or choose to contact us through its links and enquiry form.',
@@ -402,8 +402,8 @@ export const publicPages: PublicPage[] = [
         paragraphs: ['WhatsApp links take you to a third-party service. The directions link opens Google Maps. These services may process information under their own policies when you choose to use them. They are links rather than embedded chat or maps widgets on this site.', 'Phone links ask your device to open its calling application. This website does not record your calls. Your device and communications providers may handle information associated with a call.'],
       },
       {
-        heading: 'Analytics and hosting',
-        paragraphs: ['This version of the website does not load Google Analytics or Google Tag Manager by default. Account identifiers have not been invented or added without the owner’s configuration. If analytics is enabled later, this notice and any applicable consent controls should be reviewed before that change is published.', 'The hosting provider may maintain operational request logs for delivery, reliability and security. This website source does not define a retention schedule for those provider-managed logs. The owner should confirm the hosting provider’s actual practices before making more specific commitments.'],
+        heading: 'Google Tag Manager and hosting',
+        paragraphs: ['This website loads Google Tag Manager using container GTM-P7S6T33L, supplied by the business owner. The tags published in that container determine which measurement or advertising services run. Google Analytics 4 and Google Ads account configurations have not been verified. No separate direct Google Analytics script has been added alongside this container.', 'The website does not intentionally add enquiry names, phone numbers, email addresses or project descriptions to the Tag Manager data layer. Enquiry details are used to prepare the WhatsApp draft described above.', 'The hosting provider may maintain operational request logs for delivery, reliability and security. This website source does not define a retention schedule for those provider-managed logs. The owner should confirm the hosting provider’s actual practices before making more specific commitments.'],
       },
       {
         heading: 'Questions about your information',

@@ -11,6 +11,9 @@ export async function verifyAgencyLanding({dashboardUrl,publicPaths=['/website-d
   const directory=path.join(repository,'tests/artifacts');await fs.mkdir(directory,{recursive:true});
   const browser=await chromium.launch({headless:true,executablePath:process.env.E2E_CHROME||'C:/Program Files/Google/Chrome/Application/chrome.exe'});
   const context=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'reduce'});
+  const tagManagerUrl='https://www.googletagmanager.com/gtm.js?id=GTM-P7S6T33L';
+  // Keep synthetic form details and browser QA out of the owner's live analytics.
+  await context.route(tagManagerUrl,route=>route.fulfill({status:200,contentType:'application/javascript',body:'/* Google Tag Manager stubbed during local browser QA. */'}));
   const page=await context.newPage();page.setDefaultNavigationTimeout(60000);
   const errors=[],failedAssets=[],requests=[];
   page.on('pageerror',error=>errors.push(error.message));
@@ -34,6 +37,11 @@ export async function verifyAgencyLanding({dashboardUrl,publicPaths=['/website-d
     assert.equal((await page.goto(origin,{waitUntil:'networkidle'})).status(),200);
     await page.getByRole('button',{name:'Prepare my free consultation'}).waitFor();
     await page.waitForFunction(()=>!document.querySelector('button[type=submit]')?.disabled);
+    assert.equal(await page.locator('script[src="'+tagManagerUrl+'"]').count(),1,'One owner-provided GTM loader per page.');
+    assert.equal(requests.filter(url=>url===tagManagerUrl).length,1,'GTM loads once on the initial document.');
+    assert.equal(await page.evaluate(()=>typeof window.gtag),'function');
+    assert.equal(await page.evaluate(()=>window.dataLayer.filter(entry=>entry[0]==='js'&&entry[1] instanceof Date).length),1,'Initial data-layer command is queued once.');
+    result.tagManager={container:'GTM-P7S6T33L',loaderCount:1,initializationCount:1,externalScriptStubbed:true};
     const body=await page.locator('body').innerText();assert.match(body,/2021/);assert.match(body,/2,000\+/);assert.match(body,/603, Advant Navis Business Park/);assert.match(body,/Greater Noida/);assert.doesNotMatch(body,/DeployHub|Admin login|Admin access/);
     assert.equal(await page.locator('h1').count(),1);
     assert.equal(await page.locator('a[href^="tel:+919115082252"]').count()>0,true);
@@ -73,7 +81,7 @@ export async function verifyAgencyLanding({dashboardUrl,publicPaths=['/website-d
       result.publicPageResponsive.push({path:pathname,widths:[320,375,390,768,1024,1440,1920],horizontalOverflow:false,h1Clipping:false});
     }
     const nojs=await browser.newContext({javaScriptEnabled:false,viewport:{width:390,height:844}});const staticPage=await nojs.newPage();await staticPage.goto(origin,{waitUntil:'domcontentloaded'});assert.equal(await staticPage.locator('h1').count(),1);assert.match(await staticPage.locator('#services').innerText(),/Website development/);assert.ok(await staticPage.locator('main details p').count()>=10);await staticPage.locator('header summary').click();assert.notEqual(await staticPage.locator('header details').getAttribute('open'),null);await nojs.close();result.javascriptDisabled=true;
-    assert.deepEqual(errors,[]);assert.deepEqual(failedAssets,[]);assert.equal(requests.some(url=>new URL(url).hostname!=='127.0.0.1'&&new URL(url).hostname!=='localhost'),false,'No external requests without a visitor clicking an external service.');
+    assert.deepEqual(errors,[]);assert.deepEqual(failedAssets,[]);assert.equal(requests.some(url=>new URL(url).hostname!=='127.0.0.1'&&new URL(url).hostname!=='localhost'&&url!==tagManagerUrl),false,'Only the owner-provided GTM loader is requested externally; it is stubbed during QA.');
     await fs.writeFile(path.join(repository,'docs/seo-browser-results.json'),JSON.stringify(result,null,2)+'\n');return result;
   }catch(error){await page.screenshot({path:path.join(directory,'seo-failure.png'),fullPage:true}).catch(()=>{});throw error;}
   finally{await browser.close();}

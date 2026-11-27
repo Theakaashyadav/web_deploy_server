@@ -9,5 +9,8 @@ export const metadata: Metadata = {
 };
 export const viewport: Viewport = {width:'device-width',initialScale:1,themeColor:'#1a282b'};
 export default function RootLayout({children}:Readonly<{children:React.ReactNode}>) {
-  return <html lang="en-IN"><body><script type="application/ld+json" dangerouslySetInnerHTML={{__html:serializeSchema({'@context':'https://schema.org','@graph':[businessSchema,websiteSchema]})}}/>{children}</body></html>;
+  return <html lang="en-IN"><head>
+    <script id="google-tag-manager-init" dangerouslySetInnerHTML={{__html:"window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date());"}} />
+    <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-P7S6T33L" />
+  </head><body><script type="application/ld+json" dangerouslySetInnerHTML={{__html:serializeSchema({'@context':'https://schema.org','@graph':[businessSchema,websiteSchema]})}}/>{children}</body></html>;
 }

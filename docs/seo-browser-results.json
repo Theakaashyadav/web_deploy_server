@@ -57,7 +57,7 @@
   "lab": {
     "conditions": "Local production Next server; installed headless Chrome; no network/CPU throttling; browser diagnostics, not Lighthouse or field Core Web Vitals.",
     "desktop": {
-      "lcp": 360,
+      "lcp": 364,
       "cls": 0,
       "events": [
         {
@@ -73,13 +73,13 @@
           "duration": 24
         }
       ],
-      "longTasks": 0,
+      "longTasks": 1,
       "navigation": {
-        "name": "http://127.0.0.1:60135/",
+        "name": "http://127.0.0.1:55528/",
         "entryType": "navigation",
         "startTime": 0,
-        "duration": 186.7999999988824,
-        "navigationId": 6787,
+        "duration": 190.5,
+        "navigationId": 3381,
         "initiatorType": "navigation",
         "deliveryType": "",
         "nextHopProtocol": "http/1.1",
@@ -95,30 +95,30 @@
         "workerFinalSourceType": "",
         "redirectStart": 0,
         "redirectEnd": 0,
-        "fetchStart": 0.6999999992549419,
-        "domainLookupStart": 0.6999999992549419,
-        "domainLookupEnd": 0.6999999992549419,
-        "connectStart": 0.6999999992549419,
+        "fetchStart": 0.8000000007450581,
+        "domainLookupStart": 0.8000000007450581,
+        "domainLookupEnd": 0.8000000007450581,
+        "connectStart": 0.8000000007450581,
         "secureConnectionStart": 0,
-        "connectEnd": 0.6999999992549419,
-        "requestStart": 1.900000000372529,
-        "responseStart": 7.099999999627471,
+        "connectEnd": 0.8000000007450581,
+        "requestStart": 6.300000000745058,
+        "responseStart": 10.400000002235174,
         "firstInterimResponseStart": 0,
-        "finalResponseHeadersStart": 7.099999999627471,
-        "responseEnd": 7.799999998882413,
-        "transferSize": 26785,
-        "encodedBodySize": 26485,
-        "decodedBodySize": 169392,
+        "finalResponseHeadersStart": 10.400000002235174,
+        "responseEnd": 11.600000001490116,
+        "transferSize": 27059,
+        "encodedBodySize": 26759,
+        "decodedBodySize": 170046,
         "responseStatus": 200,
         "serverTiming": [],
         "unloadEventStart": 0,
         "unloadEventEnd": 0,
-        "domInteractive": 144.09999999962747,
-        "domContentLoadedEventStart": 144.09999999962747,
-        "domContentLoadedEventEnd": 144.09999999962747,
-        "domComplete": 186.59999999962747,
-        "loadEventStart": 186.7999999988824,
-        "loadEventEnd": 186.7999999988824,
+        "domInteractive": 31,
+        "domContentLoadedEventStart": 31,
+        "domContentLoadedEventEnd": 31.100000001490116,
+        "domComplete": 190.40000000223517,
+        "loadEventStart": 190.5,
+        "loadEventEnd": 190.5,
         "type": "navigate",
         "redirectCount": 0,
         "activationStart": 0,
@@ -131,66 +131,71 @@
       },
       "resources": [
         {
-          "name": "http://127.0.0.1:60135/_next/static/css/7d396c3d3476f3bd.css",
+          "name": "http://127.0.0.1:55528/_next/static/css/7d396c3d3476f3bd.css",
           "transferSize": 792,
           "decodedBodySize": 492
         },
         {
-          "name": "http://127.0.0.1:60135/_next/static/css/95ff32bda6d24630.css",
+          "name": "http://127.0.0.1:55528/_next/static/css/95ff32bda6d24630.css",
           "transferSize": 11646,
           "decodedBodySize": 61197
         },
         {
-          "name": "http://127.0.0.1:60135/_next/static/chunks/webpack-c167cc905490f838.js",
+          "name": "http://127.0.0.1:55528/_next/static/chunks/webpack-c167cc905490f838.js",
           "transferSize": 2000,
           "decodedBodySize": 3264
         },
         {
-          "name": "http://127.0.0.1:60135/_next/static/chunks/968-a683ccf36777317a.js",
-          "transferSize": 67466,
-          "decodedBodySize": 241455
-        },
-        {
-          "name": "http://127.0.0.1:60135/_next/static/chunks/87c73c54-ec65736bd5e5b6de.js",
+          "name": "http://127.0.0.1:55528/_next/static/chunks/87c73c54-ec65736bd5e5b6de.js",
           "transferSize": 64357,
           "decodedBodySize": 203720
         },
         {
-          "name": "http://127.0.0.1:60135/_next/static/chunks/main-app-ef25f4abf448f4d8.js",
+          "name": "http://127.0.0.1:55528/_next/static/chunks/main-app-ef25f4abf448f4d8.js",
           "transferSize": 809,
           "decodedBodySize": 509
         },
         {
-          "name": "http://127.0.0.1:60135/_next/static/chunks/app/not-found-a75c77cfa2eb7ee0.js",
+          "name": "http://127.0.0.1:55528/_next/static/chunks/app/not-found-a75c77cfa2eb7ee0.js",
           "transferSize": 3629,
           "decodedBodySize": 7815
         },
         {
-          "name": "http://127.0.0.1:60135/_next/static/chunks/app/page-609eda6166d9ecf9.js",
+          "name": "http://127.0.0.1:55528/_next/static/chunks/app/page-609eda6166d9ecf9.js",
           "transferSize": 5025,
           "decodedBodySize": 13156
         },
         {
-          "name": "http://127.0.0.1:60135/icon.svg",
+          "name": "http://127.0.0.1:55528/_next/static/chunks/968-a683ccf36777317a.js",
+          "transferSize": 67466,
+          "decodedBodySize": 241455
+        },
+        {
+          "name": "https://www.googletagmanager.com/gtm.js?id=GTM-P7S6T33L",
+          "transferSize": 0,
+          "decodedBodySize": 0
+        },
+        {
+          "name": "http://127.0.0.1:55528/icon.svg",
           "transferSize": 490,
           "decodedBodySize": 250
         }
       ]
     },
     "mobile": {
-      "lcp": 104,
+      "lcp": 56,
       "cls": 0,
       "events": [],
       "longTasks": 0,
       "navigation": {
-        "name": "http://127.0.0.1:60135/",
+        "name": "http://127.0.0.1:55528/",
         "entryType": "navigation",
         "startTime": 0,
-        "duration": 97,
-        "navigationId": 2184,
+        "duration": 60,
+        "navigationId": 4964,
         "initiatorType": "navigation",
-        "deliveryType": "cache",
-        "nextHopProtocol": "",
+        "deliveryType": "",
+        "nextHopProtocol": "http/1.1",
         "renderBlockingStatus": "non-blocking",
         "contentType": "text/html",
         "contentEncoding": "gzip",
@@ -203,30 +208,30 @@
         "workerFinalSourceType": "",
         "redirectStart": 0,
         "redirectEnd": 0,
-        "fetchStart": 0.900000000372529,
-        "domainLookupStart": 0.900000000372529,
-        "domainLookupEnd": 0.900000000372529,
-        "connectStart": 0.900000000372529,
+        "fetchStart": 0.5,
+        "domainLookupStart": 0.5,
+        "domainLookupEnd": 0.5,
+        "connectStart": 0.5,
         "secureConnectionStart": 0,
-        "connectEnd": 0.900000000372529,
-        "requestStart": 2.799999998882413,
-        "responseStart": 9.699999999254942,
+        "connectEnd": 0.5,
+        "requestStart": 4.200000002980232,
+        "responseStart": 9.5,
         "firstInterimResponseStart": 0,
-        "finalResponseHeadersStart": 9.699999999254942,
-        "responseEnd": 11,
-        "transferSize": 300,
-        "encodedBodySize": 26485,
-        "decodedBodySize": 169392,
+        "finalResponseHeadersStart": 9.5,
+        "responseEnd": 10.400000002235174,
+        "transferSize": 27059,
+        "encodedBodySize": 26759,
+        "decodedBodySize": 170046,
         "responseStatus": 200,
         "serverTiming": [],
-        "unloadEventStart": 15.5,
-        "unloadEventEnd": 15.5,
-        "domInteractive": 42,
-        "domContentLoadedEventStart": 42,
-        "domContentLoadedEventEnd": 42.09999999962747,
-        "domComplete": 96.90000000037253,
-        "loadEventStart": 97,
-        "loadEventEnd": 97,
+        "unloadEventStart": 12.5,
+        "unloadEventEnd": 12.5,
+        "domInteractive": 46.5,
+        "domContentLoadedEventStart": 46.5,
+        "domContentLoadedEventEnd": 46.600000001490116,
+        "domComplete": 59.900000002235174,
+        "loadEventStart": 60,
+        "loadEventEnd": 60,
         "type": "navigate",
         "redirectCount": 0,
         "activationStart": 0,
@@ -238,6 +243,12 @@
         }
       }
     }
+  },
+  "tagManager": {
+    "container": "GTM-P7S6T33L",
+    "loaderCount": 1,
+    "initializationCount": 1,
+    "externalScriptStubbed": true
   },
   "publicPageResponsive": [
     {

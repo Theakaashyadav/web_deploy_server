@@ -30,7 +30,9 @@ Build command: `npm run build`. Repository-relative output: `apps/dashboard/.nex
 
 `npm start` starts the built website for hosting. It respects the provider's `PORT` (including 3000), defaults to 3100, and binds to `0.0.0.0` so the hosting proxy can reach it. Set `WEBSYNK_HOST` to override the bind address. Use `npm run preview` for a local preview instead.
 
-The canonical production origin is `https://websynk.in`; non-WWW URLs use trailing slashes. Configure HTTPS and the www-to-non-www redirect at the hosting provider as well. `WEBSYNK_NOINDEX=true` is available for staging environments; leave it false for production. Set `GOOGLE_SITE_VERIFICATION` only to the actual Search Console value supplied by the owner. No Google Analytics/Tag Manager identifier or Google Business Profile URL is fabricated.
+The canonical production origin is `https://websynk.in`; non-WWW URLs use trailing slashes. Configure HTTPS and the www-to-non-www redirect at the hosting provider as well. `WEBSYNK_NOINDEX=true` is available for staging environments; leave it false for production. Set `GOOGLE_SITE_VERIFICATION` only to the actual Search Console value supplied by the owner. No Google Business Profile URL is fabricated.
+
+The owner-provided Google Tag Manager container `GTM-P7S6T33L` is installed. Its published tags determine tracking behavior; GA4 and Google Ads account configurations have not been verified. No duplicate direct GA4 script is added, and enquiry personal information is not intentionally pushed to the data layer.
 
 The enquiry form creates a WhatsApp draft for the visitor to review and send. It does not store enquiries in a website database or claim that a message was delivered. Telephone and Maps links use the business information supplied and confirmed by the owner.
 
