@@ -2,6 +2,7 @@ import { ArrowDown, ArrowRight, ArrowUpRight, Check, ChevronDown, Code2, Globe2,
 import { agencyAddress, agencyMapsUrl, agencyPhoneDisplay, agencyPhoneHref, deliveredProjects, establishedYear } from '../lib/agency';
 import MobileNavigation from './MobileNavigation';
 import EnquiryForm from './EnquiryForm';
+import ContactActions from './ContactActions';
 import styles from './AgencyLanding.module.css';
 
 type AgencyLandingProps = { agencyName: string; whatsappUrl: string | null };
@@ -133,6 +134,6 @@ export default function AgencyLanding({ agencyName, whatsappUrl }: AgencyLanding
       </div></section>
     </main>
     <footer className={styles.footer}><div className={styles.container}><div className={styles.footerMain}><a className={styles.brand} href="/" aria-label={`${agencyName} home`}>{brand}</a><p>Thoughtful technology. Distinctive design.<br />Your digital partner in Noida and Greater Noida.</p><nav aria-label="Footer navigation"><a href="/about-us/">Company</a><a href="/contact-us/">Contact</a><a href="/blog/">Insights</a><a href={agencyPhoneHref}>Call us <ArrowUpRight size={14} aria-hidden="true" /></a></nav></div><address className={styles.footerAddress}>{agencyName} · {agencyAddress} · <a href={agencyPhoneHref}>{agencyPhoneDisplay}</a></address><div className={styles.footerBottom}><span>© {agencyName}. All rights reserved.</span><a href="/privacy-policy/">Privacy policy</a><a href="/terms-and-conditions/">Terms &amp; conditions</a></div></div></footer>
-    <a className={styles.floatingChat} {...chat} aria-label={`Let's chat with ${agencyName} on WhatsApp`}><MessageCircle size={23} strokeWidth={1.8} aria-hidden="true" /><span>Let&apos;s chat</span><span className={styles.chatStatus} /></a>
+    <ContactActions whatsappUrl={whatsappUrl} />
   </div>;
 }

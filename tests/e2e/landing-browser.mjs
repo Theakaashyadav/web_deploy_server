@@ -33,6 +33,20 @@ export async function verifyAgencyLanding({dashboardUrl,publicPaths=['/website-d
     }
   });
   const result={widths:[],pageErrors:errors,failedAssets,form:{},javascriptDisabled:false,lab:{conditions:'Local production Next server; installed headless Chrome; no network/CPU throttling; browser diagnostics, not Lighthouse or field Core Web Vitals.'}};
+  async function verifyContactActions(){
+    const dock=page.locator('[data-contact-actions]');
+    assert.equal(await dock.count(),1,'One persistent contact dock.');
+    assert.equal(await dock.evaluate(element=>getComputedStyle(element).position),'fixed');
+    const call=dock.locator('a[href="tel:+919115082252"]');
+    const whatsapp=dock.locator('a[href^="https://wa.me/919115082252"]');
+    assert.match(await call.innerText(),/call now/i);assert.match(await whatsapp.innerText(),/whatsapp/i);
+    for(const link of [call,whatsapp]){
+      assert.equal(await link.evaluate(element=>{
+        const box=element.getBoundingClientRect();
+        return box.height>=48&&box.width>=48&&box.left>=0&&box.right<=innerWidth&&box.top>=0&&box.bottom<=innerHeight+1&&document.elementFromPoint(box.x+box.width/2,box.y+box.height/2)?.closest('a')===element;
+      }),true,'Both contact actions stay visible, large enough to tap and in front of page content.');
+    }
+  }
   try{
     assert.equal((await page.goto(origin,{waitUntil:'networkidle'})).status(),200);
     await page.getByRole('button',{name:'Prepare my free consultation'}).waitFor();
@@ -48,17 +62,38 @@ export async function verifyAgencyLanding({dashboardUrl,publicPaths=['/website-d
     for(const href of await page.locator('a[href^="https://wa.me/"]').evaluateAll(links=>links.map(link=>link.href)))assert.equal(new URL(href).pathname,'/919115082252');
     const maps=page.getByRole('link',{name:'Get directions'});assert.ok(await maps.count());assert.match(new URL(await maps.first().getAttribute('href')).searchParams.get('query'),/603, Advant Navis/);
     const faq=page.locator('main details');assert.equal(await faq.count(),10);await faq.first().locator('summary').click();assert.ok(await faq.first().getAttribute('open')!==null);assert.ok((await faq.first().locator('p').innerText()).length>60);
+    result.contactActions={widths:[],scrollPositions:['top','middle','bottom'],reducedMotion:true};
     for(const width of [320,375,390,768,1024,1440,1920]){
       await page.setViewportSize({width,height:width<600?844:1000});await page.evaluate(()=>scrollTo(0,0));
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,`horizontal overflow at${width}`);
       assert.equal(await page.locator('h1').evaluate(element=>element.scrollWidth>element.clientWidth+1),false,`H1 clipping at${width}`);
+      for(const fraction of [0,.5,1]){
+        await page.evaluate(value=>scrollTo({top:(document.documentElement.scrollHeight-innerHeight)*value,behavior:'instant'}),fraction);
+        await verifyContactActions();
+      }
+      const dockTop=await page.locator('[data-contact-actions]').evaluate(element=>element.getBoundingClientRect().top);
+      assert.ok(await page.locator('footer a[href="/terms-and-conditions/"]').evaluate((element,top)=>element.getBoundingClientRect().bottom<top,dockTop),'Footer links are reachable above the contact dock.');
+      await page.evaluate(()=>scrollTo({top:0,behavior:'instant'}));
       await page.screenshot({path:path.join(directory,`seo-home-${width}.png`),fullPage:true});
       result.widths.push({width,horizontalOverflow:false,h1Clipping:false,screenshot:`tests/artifacts/seo-home-${width}.png`});
+      result.contactActions.widths.push(width);
+      if(width===390||width===1440)await page.screenshot({path:path.join(directory,`contact-actions-${width}.png`)});
     }
+    for(const viewport of [{width:320,height:568},{width:844,height:390}]){
+      await page.setViewportSize(viewport);await page.evaluate(()=>scrollTo({top:document.documentElement.scrollHeight/2,behavior:'instant'}));await verifyContactActions();
+    }
+    const dock=page.locator('[data-contact-actions]');
+    assert.equal(await dock.evaluate(element=>element.getAnimations({subtree:true}).length),0,'Reduced motion disables contact attention animations.');
+    await page.emulateMedia({reducedMotion:'no-preference'});
+    assert.ok(await dock.evaluate(element=>element.getAnimations({subtree:true}).length)>0,'Contact actions animate when motion is allowed.');
+    await page.emulateMedia({reducedMotion:'reduce'});
+    result.contactActions.shortScreens=true;result.contactActions.animationVerified=true;
+    await page.setViewportSize({width:1440,height:1000});await page.evaluate(()=>scrollTo({top:0,behavior:'instant'}));
     result.lab.desktop=await page.evaluate(()=>({...window.__websynkVitals,navigation:performance.getEntriesByType('navigation')[0]?.toJSON(),resources:performance.getEntriesByType('resource').map(entry=>({name:entry.name,transferSize:entry.transferSize,decodedBodySize:entry.decodedBodySize}))}));
     await page.setViewportSize({width:390,height:844});await page.goto(origin,{waitUntil:'networkidle'});
     result.lab.mobile=await page.evaluate(()=>({...window.__websynkVitals,navigation:performance.getEntriesByType('navigation')[0]?.toJSON()}));
     const summary=page.locator('header details > summary');await summary.click();assert.notEqual(await page.locator('header details').getAttribute('open'),null);
+    await verifyContactActions();
     await page.getByRole('navigation',{name:'Mobile navigation'}).getByRole('link',{name:'Services',exact:true}).click();assert.equal(new URL(page.url()).hash,'#services');assert.equal(await page.locator('header details').getAttribute('open'),null);
     await summary.click();await page.keyboard.press('Escape');assert.equal(await page.locator('header details').getAttribute('open'),null);
     await page.getByLabel('Your name',{exact:true}).fill('QA Visitor');await page.getByLabel('Phone number',{exact:true}).fill('abc');await page.getByLabel('What would you like to discuss?').selectOption({label:'Website development'});await page.getByLabel('A little about your project').fill('We need a business website with a clear contact journey.');await page.locator('input[name=consent]').check();
